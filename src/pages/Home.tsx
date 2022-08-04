@@ -3,11 +3,7 @@ import { Container, Grid } from '@mui/material';
 import Button from '@mui/material/Button';
 import { TextField } from '@mui/material';
 import { useRef, useEffect, useState, useContext } from 'react';
-import AgoraRTC, {
-  ClientConfig,
-  UID,
-  IAgoraRTCRemoteUser
-} from 'agora-rtc-sdk-ng';
+import AgoraRTC, { ClientConfig, IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
 import AuthContext from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import InputLabel from '@mui/material/InputLabel';
