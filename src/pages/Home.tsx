@@ -23,9 +23,7 @@ let useClient = AgoraRTC.createClient(config);
 function Home() {
   const fileInput = useRef<HTMLInputElement>(null);
   const authContext = useContext(AuthContext);
-  console.log();
   const navigate = useNavigate();
-  let uid: UID;
   const [appId, setAppID] = useState('56dd54658f404b64a9bcc23c132be423');
   const [channel, setChannel] = useState('djemo');
   const [deviceList, setDeviceList] = useState<MediaDeviceInfo[]>([]);
@@ -40,7 +38,7 @@ function Home() {
   const [mpTrack, setMPTrack] = useState<any>(null);
 
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
-
+  console.log(users);
   useEffect(() => {
     AgoraRTC.getMicrophones()
       .then((devices) => {
@@ -116,7 +114,7 @@ function Home() {
     };
 
     try {
-      uid = await useClient.join(
+      await useClient.join(
         appId,
         channel,
         null,
