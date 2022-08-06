@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AuthProvider from './contexts/AuthProvider';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home';
-import AuthRoute from './contexts/AuthRoute';
+// import AuthRoute from './contexts/AuthRoute';
 import { HelmetProvider } from 'react-helmet-async';
 
 function App() {
@@ -22,13 +22,18 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<SignIn />} />
-            {routes.map((item, index) => {
+            {/* {routes.map((item, index) => {
               return (
                 <Route
                   key={index}
                   path={item.path}
                   element={<AuthRoute>{item.element}</AuthRoute>}
                 />
+              );
+            })} */}
+            {routes.map((item, index) => {
+              return (
+                <Route key={index} path={item.path} element={item.element} />
               );
             })}
           </Routes>

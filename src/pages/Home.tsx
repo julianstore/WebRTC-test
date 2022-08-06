@@ -10,7 +10,15 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import CheckIcon from '@mui/icons-material/Check';
+import 'react-h5-audio-player/lib/styles.css';
 
+import AudioPlayer from 'react-h5-audio-player';
 const config: ClientConfig = {
   mode: 'rtc',
   codec: 'h264'
@@ -24,17 +32,17 @@ function Home() {
   const [channel, setChannel] = useState('djemo');
   const [deviceList, setDeviceList] = useState<MediaDeviceInfo[]>([]);
   const [deviceA, setDeviceA] = useState('');
-  const [deviceB, setDeviceB] = useState('');
   const [micAOn, setMicAOn] = useState(false);
-  const [micBOn, setMicBOn] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
   const [mpOn, setMpOn] = useState(false);
   const [audioTrackA, setAudioTrackA] = useState<any>();
-  const [audioTrackB, setAudioTrackB] = useState<any>();
-  const [mpTrack, setMPTrack] = useState<any>(null);
-
+  const [mpTrack, setMPTrack] = useState<any>();
+  const [audioList, setAudioList] = useState<File[]>([]);
+  const [curAudio, setCurAudio] = useState<File>();
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
+
   console.log(users);
+
   useEffect(() => {
     AgoraRTC.getMicrophones()
       .then((devices) => {
@@ -46,8 +54,6 @@ function Home() {
         console.log('get devices error!', e);
         alert('Can not find out devices');
       });
-
-    console.log('init status', useClient.connectionState);
 
     useClient.on('user-published', async (user: any, mediaType: any) => {
       //   await useClient.subscribe(user, mediaType);
@@ -89,8 +95,6 @@ function Home() {
   const handleLeave = async () => {
     await audioTrackA?.stop();
     await audioTrackA?.close();
-    await audioTrackB?.stop();
-    await audioTrackB?.close();
     await mpTrack?.stop();
     await mpTrack?.close();
 
@@ -98,15 +102,11 @@ function Home() {
 
     setIsJoined(false);
     setMicAOn(false);
-    setMicBOn(false);
   };
   const handleJoin = async () => {
     await useClient.leave();
     const configA = {
       microphoneId: deviceA
-    };
-    const configB = {
-      microphoneId: deviceB
     };
 
     try {
@@ -120,8 +120,7 @@ function Home() {
         configA
       );
       setAudioTrackA(tempTrackA);
-      const tempTrackB = await AgoraRTC.createMicrophoneAudioTrack(configB);
-      setAudioTrackB(tempTrackB);
+
       setIsJoined(!isJoined);
     } catch (e) {
       alert('Can not join, please check App ID and Channel Name');
@@ -145,48 +144,58 @@ function Home() {
     });
   };
 
-  const handleMicBOn = async () => {
-    console.log('useClient.connectionState', useClient.connectionState);
-
-    if (useClient.connectionState === 'CONNECTED') {
-      await useClient.publish([audioTrackB]).then(() => {
-        setMicBOn(!micBOn);
-      });
-    }
-  };
-
-  const handleMicBOff = async () => {
-    await useClient.unpublish([audioTrackB]).then(() => {
-      setMicBOn(!micBOn);
-    });
+  const audioChange = async (newAudio: any) => {
+    var fileConfig = {
+      // can also be a https link
+      source: newAudio
+    };
+    const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
+    setMPTrack(tempMPTrack);
+    setCurAudio(newAudio);
   };
 
   const fileUpload = async (e: any) => {
-    var fileConfig = {
-      // can also be a https link
-      source: e.target.files[0]
-    };
-
-    const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
-    setMPTrack(tempMPTrack);
+    setAudioList((list) => [...list, e.target.files[0]]);
+    audioChange(e.target.files[0]);
   };
 
-  const handleMPOn = async () => {
-    console.log('useClient.connectionState', useClient.connectionState);
+  const handleNext = () => {
+    if (curAudio)
+      setCurAudio(
+        audioList.indexOf(curAudio) + 1 < audioList.length
+          ? audioList[audioList.indexOf(curAudio) + 1]
+          : audioList[0]
+      );
+  };
 
-    if (useClient.connectionState === 'CONNECTED') {
-      await useClient.publish([mpTrack]).then(() => {
+  const handlePrev = () => {
+    if (curAudio)
+      setCurAudio(
+        audioList.indexOf(curAudio) - 1 >= 0
+          ? audioList[audioList.indexOf(curAudio) - 1]
+          : audioList[audioList.length - 1]
+      );
+  };
+
+  const handleFileOn = async () => {
+    console.log(useClient.connectionState);
+
+    if (useClient.connectionState === 'CONNECTED' && mpTrack != null) {
+      await useClient.publish([mpTrack]).then((res) => {
         mpTrack.startProcessAudioBuffer();
-        // mpTrack.play();
+        mpTrack.play();
         setMpOn(!mpOn);
       });
     }
   };
 
-  const handleMPOff = async () => {
-    await useClient.unpublish([mpTrack]).then(() => {
-      setMpOn(!mpOn);
-    });
+  const handleFileOff = async () => {
+    if (useClient.connectionState === 'CONNECTED') {
+      await useClient.unpublish([mpTrack]).then(() => {
+        mpTrack.stopProcessAudioBuffer();
+        setMpOn(!mpOn);
+      });
+    }
   };
 
   const handleLogout = async () => {
@@ -197,10 +206,6 @@ function Home() {
 
   const handleDeviceAChange = (e: any) => {
     setDeviceA(e.target.value);
-  };
-
-  const handleDeviceBChange = (e: any) => {
-    setDeviceB(e.target.value);
   };
 
   return (
@@ -303,78 +308,91 @@ function Home() {
               Off
             </Button>
           </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-label">
-                Microphone B
-              </InputLabel>
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={deviceB}
-                label="Input Device"
-                onChange={handleDeviceBChange}
-              >
-                {deviceList.map((item, index) => {
-                  return (
-                    <MenuItem key={index} value={item.deviceId}>
-                      {item.label}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="contained"
-              disabled={!(deviceB !== '' && isJoined && !micBOn)}
-              onClick={handleMicBOn}
-            >
-              On
-            </Button>
-            <Button
-              variant="contained"
-              color="info"
-              style={{ marginLeft: 10 }}
-              disabled={!micBOn}
-              onClick={handleMicBOff}
-            >
-              Off
-            </Button>
-          </Grid>
+          <Grid item xs={12} container>
+            <Grid item xs={6} container>
+              <Grid item xs={4}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={!isJoined}
+                  onClick={() => fileInput?.current?.click()}
+                >
+                  upload file
+                </Button>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={fileUpload}
+                />
+              </Grid>
+              <Grid item xs={8}>
+                <List>
+                  {audioList.map((item: any, index: any) => {
+                    return (
+                      <ListItem disablePadding>
+                        <ListItemButton>
+                          <ListItemText
+                            primary={item.name}
+                            onClick={async () => {
+                              audioChange(item);
+                            }}
+                          />
+                          {item === curAudio && (
+                            <ListItemIcon>
+                              <CheckIcon />
+                            </ListItemIcon>
+                          )}
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Grid>
+            </Grid>
+            <Grid item xs={6}>
+              {curAudio && (
+                <>
+                  {/* <StreamPlayer
+                    audio={curAudio}
+                    client={useClient}
+                    onNext={handleNext}
+                    onPrev={handlePrev}
+                  /> */}
+                  <AudioPlayer
+                    style={{ borderRadius: '1rem' }}
+                    src={URL.createObjectURL(curAudio)}
+                    autoPlay
+                    showSkipControls={true}
+                    showJumpControls={false}
+                    header={`Now playing: ${curAudio.name}`}
+                    footer="All music from: wedream"
+                    onClickPrevious={handlePrev}
+                    onClickNext={handleNext}
+                    onEnded={handleNext}
+                  ></AudioPlayer>
+                </>
+              )}
 
-          <Grid item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => fileInput?.current?.click()}
-            >
-              upload file
-            </Button>
-            <input
-              ref={fileInput}
-              type="file"
-              style={{ display: 'none' }}
-              onChange={fileUpload}
-            />
-            <Button
-              variant="contained"
-              style={{ marginLeft: 10 }}
-              disabled={!(isJoined && mpTrack !== null && !mpOn)}
-              onClick={handleMPOn}
-            >
-              MP3 On
-            </Button>
-            <Button
-              variant="contained"
-              color="info"
-              style={{ marginLeft: 10 }}
-              disabled={!mpOn}
-              onClick={handleMPOff}
-            >
-              MP3 Off
-            </Button>
+              <Button
+                variant="contained"
+                style={{ marginLeft: 10 }}
+                disabled={!(isJoined && mpTrack !== null && !mpOn)}
+                onClick={handleFileOn}
+              >
+                On
+              </Button>
+
+              <Button
+                variant="contained"
+                color="info"
+                style={{ marginLeft: 10 }}
+                disabled={!mpOn}
+                onClick={handleFileOff}
+              >
+                Off
+              </Button>
+            </Grid>
           </Grid>
           <Grid item xs={12}>
             <Button variant="contained" color="warning" onClick={handleLogout}>
