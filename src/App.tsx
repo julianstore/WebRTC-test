@@ -21,7 +21,7 @@ function App() {
       <HelmetProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<SignIn />} />
+            <Route path="/" element={<Home />} />
             {/* {routes.map((item, index) => {
               return (
                 <Route
