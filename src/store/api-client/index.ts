@@ -7,7 +7,9 @@ const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_WEDREAM_API_URL,
   headers: {
     //Accept: 'application/json, text/plain, */*',
-    'Content-Type': 'application/json' //multipart/form-data; boundary=----WebKitFormBoundaryBGVvH3OfggAP4Tad
+    'Content-Type': 'application/json', //multipart/form-data; boundary=----WebKitFormBoundaryBGVvH3OfggAP4Tad
+    'Access-Control-Allow-Origin': '*',
+    Origin: '*'
   }
 });
 
