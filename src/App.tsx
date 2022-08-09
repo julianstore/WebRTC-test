@@ -3,9 +3,9 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import AuthProvider from './contexts/AuthProvider';
-// import SignIn from './pages/SignIn';
+import SignIn from './pages/SignIn';
 import Home from './pages/Home';
-// import AuthRoute from './contexts/AuthRoute';
+import AuthRoute from './contexts/AuthRoute';
 import { HelmetProvider } from 'react-helmet-async';
 
 function App() {
@@ -21,8 +21,8 @@ function App() {
       <HelmetProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Home />} />
-            {/* {routes.map((item, index) => {
+            <Route path="/" element={<SignIn />} />
+            {routes.map((item, index) => {
               return (
                 <Route
                   key={index}
@@ -30,12 +30,12 @@ function App() {
                   element={<AuthRoute>{item.element}</AuthRoute>}
                 />
               );
-            })} */}
-            {routes.map((item, index) => {
+            })}
+            {/* {routes.map((item, index) => {
               return (
                 <Route key={index} path={item.path} element={item.element} />
               );
-            })}
+            })} */}
           </Routes>
         </Router>
       </HelmetProvider>

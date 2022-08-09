@@ -49,6 +49,8 @@ function Home() {
   const [position, setPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
 
+  let intervalId: any;
+
   console.log(playing);
   console.log(users);
   useEffect(() => {
@@ -197,6 +199,9 @@ function Home() {
   const handlePlay = async () => {
     console.log(useClient.connectionState);
     console.log('paused:', paused);
+    intervalId = setInterval(() => {
+      console.log('isPlaying:', mpTrack);
+    }, 1000);
     if (useClient.connectionState === 'CONNECTED' && mpTrack != null) {
       if (paused) {
         mpTrack.resumeProcessAudioBuffer();
@@ -215,6 +220,7 @@ function Home() {
     setPaused(true);
     setPlaying(false);
     mpTrack.pauseProcessAudioBuffer();
+    clearInterval(intervalId);
   };
 
   const handleStop = async () => {
@@ -224,6 +230,7 @@ function Home() {
         setPaused(true);
         setPlaying(false);
         setPosition(0);
+        clearInterval(intervalId);
       });
     }
   };
@@ -436,18 +443,18 @@ function Home() {
                 color="info"
                 style={{ marginLeft: 10 }}
                 disabled={!(audioList.length > 1 && curAudio)}
-                onClick={handleNext}
+                onClick={handlePrev}
               >
-                <SkipNextIcon />
+                <SkipPreviousIcon />
               </Button>
               <Button
                 variant="contained"
                 color="info"
                 style={{ marginLeft: 10 }}
                 disabled={!(audioList.length > 1 && curAudio)}
-                onClick={handlePrev}
+                onClick={handleNext}
               >
-                <SkipPreviousIcon />
+                <SkipNextIcon />
               </Button>
             </Grid>
           </Grid>
