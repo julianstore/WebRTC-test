@@ -46,6 +46,7 @@ function Home() {
   const [position, setPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
 
+  console.log(playing);
   console.log(users);
   useEffect(() => {
     AgoraRTC.getMicrophones()
