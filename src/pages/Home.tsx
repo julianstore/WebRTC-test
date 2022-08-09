@@ -60,17 +60,17 @@ function Home() {
     if (useClient.connectionState === 'CONNECTED') setIsJoined(true);
 
     useClient.on('user-published', async (user: any, mediaType: any) => {
-      //   await useClient.subscribe(user, mediaType);
-      //   console.log('subscribe success');
-      //   if (mediaType === 'video') {
-      //     setUsers((prevUsers) => {
-      //       return [...prevUsers, user];
-      //     });
-      //   }
-      //   if (mediaType === 'audio') {
-      //     user.audioTrack?.play();
-      //   }
-      //   console.log('user List:', users);
+      await useClient.subscribe(user, mediaType);
+      console.log('subscribe success');
+      if (mediaType === 'video') {
+        setUsers((prevUsers) => {
+          return [...prevUsers, user];
+        });
+      }
+      if (mediaType === 'audio') {
+        user.audioTrack?.play();
+      }
+      console.log('user List:', users);
     });
 
     useClient.on('user-unpublished', (user: any, type: any) => {
@@ -401,7 +401,7 @@ function Home() {
               <Button
                 variant="contained"
                 style={{ marginLeft: 10 }}
-                disabled={!isJoined || mpTrack === null || !paused || playing}
+                disabled={!isJoined || mpTrack === null}
                 onClick={handlePlay}
               >
                 Play
