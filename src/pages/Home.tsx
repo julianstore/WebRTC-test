@@ -16,7 +16,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import CheckIcon from '@mui/icons-material/Check';
-import 'react-h5-audio-player/lib/styles.css';
+// import 'react-h5-audio-player/lib/styles.css';
+// import Slider from '@mui/material/Slider';
 
 // import AudioPlayer from 'react-h5-audio-player';
 const config: ClientConfig = {
@@ -36,9 +37,9 @@ function Home() {
   const [deviceA, setDeviceA] = useState('');
   const [micAOn, setMicAOn] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
-  const [mpOn, setMpOn] = useState(false);
-  const [audioTrackA, setAudioTrackA] = useState<any>();
-  const [mpTrack, setMPTrack] = useState<any>();
+  const [paused, setPaused] = useState(false);
+  const [audioTrackA, setAudioTrackA] = useState<any>(null);
+  const [mpTrack, setMPTrack] = useState<any>(null);
   const [audioList, setAudioList] = useState<File[]>([]);
   const [curAudio, setCurAudio] = useState<File>();
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
@@ -47,8 +48,6 @@ function Home() {
   useEffect(() => {
     AgoraRTC.getMicrophones()
       .then((devices) => {
-        console.log('device Ids');
-        console.log(devices);
         setDeviceList(devices);
       })
       .catch((e) => {
@@ -69,6 +68,7 @@ function Home() {
       //   if (mediaType === 'audio') {
       //     user.audioTrack?.play();
       //   }
+      //   console.log('user List:', users);
     });
 
     useClient.on('user-unpublished', (user: any, type: any) => {
@@ -81,6 +81,7 @@ function Home() {
           return prevUsers.filter((User) => User.uid !== user.uid);
         });
       }
+      console.log('user List:', users);
     });
 
     useClient.on('user-left', (user: any) => {
@@ -88,12 +89,13 @@ function Home() {
       setUsers((prevUsers) => {
         return prevUsers.filter((User) => User.uid !== user.uid);
       });
+      console.log('user List:', users);
     });
 
     useClient.on('connection-state-change', () => {
       console.log('status changed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
     });
-  }, []);
+  }, [users]);
 
   const handleLeave = async () => {
     await audioTrackA?.stop();
@@ -113,7 +115,6 @@ function Home() {
     };
 
     let randID = Math.random().toString();
-    console.log('randOm:', randID);
     try {
       await useClient.join(
         appId,
@@ -155,57 +156,62 @@ function Home() {
     };
     const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
     setMPTrack(tempMPTrack);
+
     setCurAudio(newAudio);
   };
 
   const fileUpload = async (e: any) => {
-    var fileConfig = {
-      // can also be a https link
-      source: e.target.files[0]
-    };
-    const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
-    setMPTrack(tempMPTrack);
-    setCurAudio(e.target.files[0]);
-
     setAudioList((list) => [...list, e.target.files[0]]);
-    // audioChange(e.target.files[0]);
+    audioChange(e.target.files[0]);
   };
 
-  //   const handleNext = () => {
-  //     if (curAudio)
-  //       setCurAudio(
-  //         audioList.indexOf(curAudio) + 1 < audioList.length
-  //           ? audioList[audioList.indexOf(curAudio) + 1]
-  //           : audioList[0]
-  //       );
-  //   };
+  const handleNext = () => {
+    if (curAudio)
+      audioChange(
+        audioList.indexOf(curAudio) + 1 < audioList.length
+          ? audioList[audioList.indexOf(curAudio) + 1]
+          : audioList[0]
+      );
+  };
 
-  //   const handlePrev = () => {
-  //     if (curAudio)
-  //       setCurAudio(
-  //         audioList.indexOf(curAudio) - 1 >= 0
-  //           ? audioList[audioList.indexOf(curAudio) - 1]
-  //           : audioList[audioList.length - 1]
-  //       );
-  //   };
+  const handlePrev = () => {
+    if (curAudio)
+      audioChange(
+        audioList.indexOf(curAudio) - 1 >= 0
+          ? audioList[audioList.indexOf(curAudio) - 1]
+          : audioList[audioList.length - 1]
+      );
+  };
 
-  const handleFileOn = async () => {
+  const handlePlay = async () => {
     console.log(useClient.connectionState);
-
+    console.log('paused:', paused);
     if (useClient.connectionState === 'CONNECTED' && mpTrack != null) {
-      await useClient.publish([mpTrack]).then((res) => {
-        mpTrack.startProcessAudioBuffer();
-        // mpTrack.play();
-        setMpOn(!mpOn);
-      });
+      if (paused) {
+        mpTrack.resumeProcessAudioBuffer();
+        setPaused(false);
+      } else {
+        mpTrack.stopProcessAudioBuffer();
+        await useClient.publish([mpTrack]).then((res) => {
+          mpTrack.startProcessAudioBuffer();
+          // mpTrack.play();
+        });
+      }
     }
   };
 
-  const handleFileOff = async () => {
+  const handlePause = async () => {
+    console.log(useClient.connectionState);
+    setPaused(true);
+    mpTrack.pauseProcessAudioBuffer();
+  };
+
+  const handleStop = async () => {
     if (useClient.connectionState === 'CONNECTED') {
       await useClient.unpublish([mpTrack]).then(() => {
         mpTrack.stopProcessAudioBuffer();
-        setMpOn(!mpOn);
+        setPaused(true);
+        setMPTrack(null);
       });
     }
   };
@@ -219,6 +225,12 @@ function Home() {
   const handleDeviceAChange = (e: any) => {
     setDeviceA(e.target.value);
   };
+
+  //   function formatDuration(value: number) {
+  //     const minute = Math.floor(value / 60);
+  //     const secondLeft = value - minute * 60;
+  //     return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
+  //   }
 
   return (
     <>
@@ -342,7 +354,7 @@ function Home() {
                 <List>
                   {audioList.map((item: any, index: any) => {
                     return (
-                      <ListItem disablePadding>
+                      <ListItem disablePadding key={index}>
                         <ListItemButton>
                           <ListItemText
                             primary={item.name}
@@ -363,46 +375,64 @@ function Home() {
               </Grid>
             </Grid>
             <Grid item xs={6}>
-              {curAudio && (
+              {/* {curAudio && (
                 <>
-                  {/* <StreamPlayer
-                    audio={curAudio}
-                    client={useClient}
-                    onNext={handleNext}
-                    onPrev={handlePrev}
-                  /> */}
-                  {/* <AudioPlayer
-                    style={{ borderRadius: '1rem' }}
-                    src={URL.createObjectURL(curAudio)}
-                    // autoPlay
-                    showSkipControls={true}
-                    showJumpControls={false}
-                    header={`Now playing: ${curAudio.name}`}
-                    footer="All music from: wedream"
-                    onClickPrevious={handlePrev}
-                    onClickNext={handleNext}
-                    onEnded={handleNext}
-                  ></AudioPlayer> */}
+                  <Slider
+                    size="small"
+                    defaultValue={70}
+                    aria-label="Small"
+                    // valueLabelDisplay="auto"
+                    step={1}
+                    min={0}
+                    max={mpTrack?.duration}
+                  />
                 </>
-              )}
+              )} */}
 
               <Button
                 variant="contained"
                 style={{ marginLeft: 10 }}
-                disabled={!(isJoined && mpTrack !== null && !mpOn)}
-                onClick={handleFileOn}
+                disabled={!(isJoined && mpTrack !== null)}
+                onClick={handlePlay}
               >
-                On
+                Play
+              </Button>
+
+              <Button
+                variant="contained"
+                style={{ marginLeft: 10 }}
+                disabled={!(isJoined && mpTrack !== null)}
+                onClick={handlePause}
+              >
+                Pause
               </Button>
 
               <Button
                 variant="contained"
                 color="info"
                 style={{ marginLeft: 10 }}
-                disabled={!mpOn}
-                onClick={handleFileOff}
+                disabled={!(isJoined && mpTrack !== null)}
+                onClick={handleStop}
               >
-                Off
+                Stop
+              </Button>
+              <Button
+                variant="contained"
+                color="info"
+                style={{ marginLeft: 10 }}
+                disabled={!(audioList.length > 1 && curAudio)}
+                onClick={handleNext}
+              >
+                Next
+              </Button>
+              <Button
+                variant="contained"
+                color="info"
+                style={{ marginLeft: 10 }}
+                disabled={!(audioList.length > 1 && curAudio)}
+                onClick={handlePrev}
+              >
+                Prev
               </Button>
             </Grid>
           </Grid>
