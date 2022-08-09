@@ -18,7 +18,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import CheckIcon from '@mui/icons-material/Check';
 import 'react-h5-audio-player/lib/styles.css';
 
-import AudioPlayer from 'react-h5-audio-player';
+// import AudioPlayer from 'react-h5-audio-player';
 const config: ClientConfig = {
   mode: 'rtc',
   codec: 'h264'
@@ -29,7 +29,9 @@ function Home() {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
   const [appId, setAppID] = useState('56dd54658f404b64a9bcc23c132be423');
-  const [channel, setChannel] = useState('djemo');
+  const [channel, setChannel] = useState(
+    'e5617602-8eef-4896-afa3-3a6f888d64ea'
+  );
   const [deviceList, setDeviceList] = useState<MediaDeviceInfo[]>([]);
   const [deviceA, setDeviceA] = useState('');
   const [micAOn, setMicAOn] = useState(false);
@@ -42,7 +44,6 @@ function Home() {
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
 
   console.log(users);
-
   useEffect(() => {
     AgoraRTC.getMicrophones()
       .then((devices) => {
@@ -54,6 +55,8 @@ function Home() {
         console.log('get devices error!', e);
         alert('Can not find out devices');
       });
+
+    if (useClient.connectionState === 'CONNECTED') setIsJoined(true);
 
     useClient.on('user-published', async (user: any, mediaType: any) => {
       //   await useClient.subscribe(user, mediaType);
@@ -109,18 +112,19 @@ function Home() {
       microphoneId: deviceA
     };
 
+    let randID = Math.random().toString();
+    console.log('randOm:', randID);
     try {
       await useClient.join(
         appId,
         channel,
         null,
-        'boomboxU$3r-' + authContext.account?.userId
+        'boomboxU$3r-' + randID //authContext.account?.userId
       );
       const tempTrackA: any = await AgoraRTC.createMicrophoneAudioTrack(
         configA
       );
       setAudioTrackA(tempTrackA);
-
       setIsJoined(!isJoined);
     } catch (e) {
       alert('Can not join, please check App ID and Channel Name');
@@ -155,27 +159,35 @@ function Home() {
   };
 
   const fileUpload = async (e: any) => {
+    var fileConfig = {
+      // can also be a https link
+      source: e.target.files[0]
+    };
+    const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
+    setMPTrack(tempMPTrack);
+    setCurAudio(e.target.files[0]);
+
     setAudioList((list) => [...list, e.target.files[0]]);
-    audioChange(e.target.files[0]);
+    // audioChange(e.target.files[0]);
   };
 
-  const handleNext = () => {
-    if (curAudio)
-      setCurAudio(
-        audioList.indexOf(curAudio) + 1 < audioList.length
-          ? audioList[audioList.indexOf(curAudio) + 1]
-          : audioList[0]
-      );
-  };
+  //   const handleNext = () => {
+  //     if (curAudio)
+  //       setCurAudio(
+  //         audioList.indexOf(curAudio) + 1 < audioList.length
+  //           ? audioList[audioList.indexOf(curAudio) + 1]
+  //           : audioList[0]
+  //       );
+  //   };
 
-  const handlePrev = () => {
-    if (curAudio)
-      setCurAudio(
-        audioList.indexOf(curAudio) - 1 >= 0
-          ? audioList[audioList.indexOf(curAudio) - 1]
-          : audioList[audioList.length - 1]
-      );
-  };
+  //   const handlePrev = () => {
+  //     if (curAudio)
+  //       setCurAudio(
+  //         audioList.indexOf(curAudio) - 1 >= 0
+  //           ? audioList[audioList.indexOf(curAudio) - 1]
+  //           : audioList[audioList.length - 1]
+  //       );
+  //   };
 
   const handleFileOn = async () => {
     console.log(useClient.connectionState);
@@ -183,7 +195,7 @@ function Home() {
     if (useClient.connectionState === 'CONNECTED' && mpTrack != null) {
       await useClient.publish([mpTrack]).then((res) => {
         mpTrack.startProcessAudioBuffer();
-        mpTrack.play();
+        // mpTrack.play();
         setMpOn(!mpOn);
       });
     }
@@ -359,10 +371,10 @@ function Home() {
                     onNext={handleNext}
                     onPrev={handlePrev}
                   /> */}
-                  <AudioPlayer
+                  {/* <AudioPlayer
                     style={{ borderRadius: '1rem' }}
                     src={URL.createObjectURL(curAudio)}
-                    autoPlay
+                    // autoPlay
                     showSkipControls={true}
                     showJumpControls={false}
                     header={`Now playing: ${curAudio.name}`}
@@ -370,7 +382,7 @@ function Home() {
                     onClickPrevious={handlePrev}
                     onClickNext={handleNext}
                     onEnded={handleNext}
-                  ></AudioPlayer>
+                  ></AudioPlayer> */}
                 </>
               )}
 
