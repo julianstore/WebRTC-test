@@ -16,10 +16,13 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import CheckIcon from '@mui/icons-material/Check';
-// import 'react-h5-audio-player/lib/styles.css';
 import Slider from '@mui/material/Slider';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import StopIcon from '@mui/icons-material/Stop';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
+import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 
-// import AudioPlayer from 'react-h5-audio-player';
 const config: ClientConfig = {
   mode: 'rtc',
   codec: 'h264'
@@ -111,6 +114,8 @@ function Home() {
     setIsJoined(false);
     setMicAOn(false);
     setAudioList([]);
+    setPosition(0);
+    setPlaying(false);
   };
   const handleJoin = async () => {
     await useClient.leave();
@@ -162,8 +167,8 @@ function Home() {
     };
     const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
     setMPTrack(tempMPTrack);
-
     setCurAudio(newAudio);
+    setPosition(0);
   };
 
   const fileUpload = async (e: any) => {
@@ -218,6 +223,7 @@ function Home() {
         mpTrack.stopProcessAudioBuffer();
         setPaused(true);
         setPlaying(false);
+        setPosition(0);
       });
     }
   };
@@ -387,7 +393,6 @@ function Home() {
                     size="small"
                     value={position}
                     aria-label="Small"
-                    // valueLabelDisplay="auto"
                     step={1}
                     min={0}
                     max={mpTrack?.duration}
@@ -405,7 +410,7 @@ function Home() {
                 disabled={!isJoined || mpTrack === null}
                 onClick={handlePlay}
               >
-                Play
+                <PlayArrowIcon />
               </Button>
 
               <Button
@@ -414,7 +419,7 @@ function Home() {
                 disabled={!isJoined || mpTrack === null || paused}
                 onClick={handlePause}
               >
-                Pause
+                <PauseIcon />
               </Button>
 
               <Button
@@ -424,7 +429,7 @@ function Home() {
                 disabled={!isJoined || mpTrack === null || paused}
                 onClick={handleStop}
               >
-                Stop
+                <StopIcon />
               </Button>
               <Button
                 variant="contained"
@@ -433,7 +438,7 @@ function Home() {
                 disabled={!(audioList.length > 1 && curAudio)}
                 onClick={handleNext}
               >
-                Next
+                <SkipNextIcon />
               </Button>
               <Button
                 variant="contained"
@@ -442,7 +447,7 @@ function Home() {
                 disabled={!(audioList.length > 1 && curAudio)}
                 onClick={handlePrev}
               >
-                Prev
+                <SkipPreviousIcon />
               </Button>
             </Grid>
           </Grid>
