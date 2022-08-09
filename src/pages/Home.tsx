@@ -17,7 +17,7 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import CheckIcon from '@mui/icons-material/Check';
 // import 'react-h5-audio-player/lib/styles.css';
-// import Slider from '@mui/material/Slider';
+import Slider from '@mui/material/Slider';
 
 // import AudioPlayer from 'react-h5-audio-player';
 const config: ClientConfig = {
@@ -43,6 +43,8 @@ function Home() {
   const [audioList, setAudioList] = useState<File[]>([]);
   const [curAudio, setCurAudio] = useState<File>();
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
+  const [position, setPosition] = useState(0);
+  const [playing, setPlaying] = useState(false);
 
   console.log(users);
   useEffect(() => {
@@ -58,17 +60,17 @@ function Home() {
     if (useClient.connectionState === 'CONNECTED') setIsJoined(true);
 
     useClient.on('user-published', async (user: any, mediaType: any) => {
-      //   await useClient.subscribe(user, mediaType);
-      //   console.log('subscribe success');
-      //   if (mediaType === 'video') {
-      //     setUsers((prevUsers) => {
-      //       return [...prevUsers, user];
-      //     });
-      //   }
-      //   if (mediaType === 'audio') {
-      //     user.audioTrack?.play();
-      //   }
-      //   console.log('user List:', users);
+      await useClient.subscribe(user, mediaType);
+      console.log('subscribe success');
+      if (mediaType === 'video') {
+        setUsers((prevUsers) => {
+          return [...prevUsers, user];
+        });
+      }
+      if (mediaType === 'audio') {
+        user.audioTrack?.play();
+      }
+      console.log('user List:', users);
     });
 
     useClient.on('user-unpublished', (user: any, type: any) => {
@@ -107,6 +109,7 @@ function Home() {
 
     setIsJoined(false);
     setMicAOn(false);
+    setAudioList([]);
   };
   const handleJoin = async () => {
     await useClient.leave();
@@ -150,6 +153,8 @@ function Home() {
   };
 
   const audioChange = async (newAudio: any) => {
+    mpTrack?.stopProcessAudioBuffer();
+    console.log('newAudio:', newAudio);
     var fileConfig = {
       // can also be a https link
       source: newAudio
@@ -191,7 +196,6 @@ function Home() {
         mpTrack.resumeProcessAudioBuffer();
         setPaused(false);
       } else {
-        mpTrack.stopProcessAudioBuffer();
         await useClient.publish([mpTrack]).then((res) => {
           mpTrack.startProcessAudioBuffer();
           // mpTrack.play();
@@ -203,6 +207,7 @@ function Home() {
   const handlePause = async () => {
     console.log(useClient.connectionState);
     setPaused(true);
+    setPlaying(false);
     mpTrack.pauseProcessAudioBuffer();
   };
 
@@ -211,7 +216,7 @@ function Home() {
       await useClient.unpublish([mpTrack]).then(() => {
         mpTrack.stopProcessAudioBuffer();
         setPaused(true);
-        setMPTrack(null);
+        setPlaying(false);
       });
     }
   };
@@ -375,24 +380,28 @@ function Home() {
               </Grid>
             </Grid>
             <Grid item xs={6}>
-              {/* {curAudio && (
+              {curAudio && audioList.length !== 0 && (
                 <>
                   <Slider
                     size="small"
-                    defaultValue={70}
+                    value={position}
                     aria-label="Small"
                     // valueLabelDisplay="auto"
                     step={1}
                     min={0}
                     max={mpTrack?.duration}
+                    onChange={(_, value) => {
+                      setPosition(value as number);
+                      mpTrack?.seekAudioBuffer(value);
+                    }}
                   />
                 </>
-              )} */}
+              )}
 
               <Button
                 variant="contained"
                 style={{ marginLeft: 10 }}
-                disabled={!(isJoined && mpTrack !== null)}
+                disabled={!isJoined || mpTrack === null || !paused || playing}
                 onClick={handlePlay}
               >
                 Play
@@ -401,7 +410,7 @@ function Home() {
               <Button
                 variant="contained"
                 style={{ marginLeft: 10 }}
-                disabled={!(isJoined && mpTrack !== null)}
+                disabled={!isJoined || mpTrack === null || paused}
                 onClick={handlePause}
               >
                 Pause
@@ -411,7 +420,7 @@ function Home() {
                 variant="contained"
                 color="info"
                 style={{ marginLeft: 10 }}
-                disabled={!(isJoined && mpTrack !== null)}
+                disabled={!isJoined || mpTrack === null || paused}
                 onClick={handleStop}
               >
                 Stop
