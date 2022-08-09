@@ -8,8 +8,7 @@ const axiosInstance = axios.create({
   headers: {
     //Accept: 'application/json, text/plain, */*',
     'Content-Type': 'application/json', //multipart/form-data; boundary=----WebKitFormBoundaryBGVvH3OfggAP4Tad
-    'Access-Control-Allow-Origin': '*',
-    Origin: '*'
+    'Access-Control-Allow-Origin': '*'
   }
 });
 
