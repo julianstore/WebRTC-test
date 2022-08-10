@@ -125,13 +125,12 @@ function Home() {
       microphoneId: deviceA
     };
 
-    let randID = Math.random().toString();
     try {
       await useClient.join(
         appId,
         channel,
         null,
-        'boomboxU$3r-' + randID //authContext.account?.userId
+        'boomboxU$3r-' + authContext.account?.userId
       );
       const tempTrackA: any = await AgoraRTC.createMicrophoneAudioTrack(
         configA
