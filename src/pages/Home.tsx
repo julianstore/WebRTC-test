@@ -1,9 +1,13 @@
 import { Helmet } from 'react-helmet-async';
 import { Container, Grid } from '@mui/material';
 import Button from '@mui/material/Button';
-import { TextField } from '@mui/material';
+import { TextField, Typography, Box } from '@mui/material';
 import { useRef, useEffect, useState, useContext } from 'react';
-import AgoraRTC, { ClientConfig, IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
+import AgoraRTC, {
+  ClientConfig,
+  IAgoraRTCRemoteUser,
+  AudioSourceState
+} from 'agora-rtc-sdk-ng';
 import AuthContext from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import InputLabel from '@mui/material/InputLabel';
@@ -22,12 +26,23 @@ import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
+import { styled } from '@mui/material/styles';
 
 const config: ClientConfig = {
   mode: 'rtc',
   codec: 'h264'
 };
 let useClient = AgoraRTC.createClient(config);
+
+var intervalId: any = null;
+
+const TinyText = styled(Typography)({
+  fontSize: '0.75rem',
+  opacity: 0.38,
+  fontWeight: 500,
+  letterSpacing: 0.2
+});
+
 function Home() {
   const fileInput = useRef<HTMLInputElement>(null);
   const authContext = useContext(AuthContext);
@@ -47,12 +62,8 @@ function Home() {
   const [curAudio, setCurAudio] = useState<File>();
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const [position, setPosition] = useState(0);
-  const [playing, setPlaying] = useState(false);
 
-  let intervalId: any;
-
-  console.log(playing);
-  console.log(users);
+  console.log('users:', users);
   useEffect(() => {
     AgoraRTC.getMicrophones()
       .then((devices) => {
@@ -76,7 +87,6 @@ function Home() {
       if (mediaType === 'audio') {
         user.audioTrack?.play();
       }
-      console.log('user List:', users);
     });
 
     useClient.on('user-unpublished', (user: any, type: any) => {
@@ -105,20 +115,39 @@ function Home() {
     });
   }, [users]);
 
+  useEffect(() => {
+    console.log('MpTrack is updated', mpTrack);
+
+    handlePlay();
+    mpTrack?.on('source-state-change', (currentState: AudioSourceState) => {
+      if (currentState === 'paused') {
+        clearInterval(intervalId);
+        setPaused(true);
+      }
+      if (currentState === 'stopped') {
+        clearInterval(intervalId);
+        setPosition(0);
+        setMPTrack(null);
+      }
+    });
+    // eslint-disable-next-line
+  }, [mpTrack]);
+
   const handleLeave = async () => {
     await audioTrackA?.stop();
     await audioTrackA?.close();
     await mpTrack?.stop();
     await mpTrack?.close();
 
-    await useClient?.leave();
-
-    setIsJoined(false);
-    setMicAOn(false);
-    setAudioList([]);
-    setPosition(0);
-    setPlaying(false);
+    await useClient?.leave().then((res) => {
+      setIsJoined(false);
+      setMicAOn(false);
+      setAudioList([]);
+      setPosition(0);
+      clearInterval(intervalId);
+    });
   };
+
   const handleJoin = async () => {
     await useClient.leave();
     const configA = {
@@ -161,15 +190,14 @@ function Home() {
 
   const audioChange = async (newAudio: any) => {
     mpTrack?.stopProcessAudioBuffer();
-    console.log('newAudio:', newAudio);
+    clearInterval(intervalId);
     var fileConfig = {
       // can also be a https link
       source: newAudio
     };
     const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
-    setMPTrack(tempMPTrack);
     setCurAudio(newAudio);
-    setPosition(0);
+    setMPTrack(tempMPTrack);
   };
 
   const fileUpload = async (e: any) => {
@@ -177,31 +205,33 @@ function Home() {
     audioChange(e.target.files[0]);
   };
 
-  const handleNext = () => {
-    if (curAudio)
-      audioChange(
+  const handleNext = async () => {
+    if (curAudio) {
+      await audioChange(
         audioList.indexOf(curAudio) + 1 < audioList.length
           ? audioList[audioList.indexOf(curAudio) + 1]
           : audioList[0]
       );
+    }
   };
 
-  const handlePrev = () => {
-    if (curAudio)
-      audioChange(
+  const handlePrev = async () => {
+    if (curAudio) {
+      await audioChange(
         audioList.indexOf(curAudio) - 1 >= 0
           ? audioList[audioList.indexOf(curAudio) - 1]
           : audioList[audioList.length - 1]
       );
+    }
   };
 
   const handlePlay = async () => {
     console.log(useClient.connectionState);
-    console.log('paused:', paused);
-    intervalId = setInterval(() => {
-      console.log('isPlaying:', mpTrack);
-    }, 1000);
+    clearInterval(intervalId);
     if (useClient.connectionState === 'CONNECTED' && mpTrack != null) {
+      intervalId = setInterval(() => {
+        setPosition(mpTrack?.getCurrentTime());
+      }, 1000);
       if (paused) {
         mpTrack.resumeProcessAudioBuffer();
         setPaused(false);
@@ -217,7 +247,6 @@ function Home() {
   const handlePause = async () => {
     console.log(useClient.connectionState);
     setPaused(true);
-    setPlaying(false);
     mpTrack.pauseProcessAudioBuffer();
     clearInterval(intervalId);
   };
@@ -226,15 +255,17 @@ function Home() {
     if (useClient.connectionState === 'CONNECTED') {
       await useClient.unpublish([mpTrack]).then(() => {
         mpTrack.stopProcessAudioBuffer();
-        setPaused(true);
-        setPlaying(false);
         setPosition(0);
+        setMPTrack(null);
         clearInterval(intervalId);
       });
     }
   };
 
   const handleLogout = async () => {
+    handleStop();
+    handleMicAOff();
+    handleLeave();
     authContext.signout(() => {
       navigate('/');
     });
@@ -244,11 +275,13 @@ function Home() {
     setDeviceA(e.target.value);
   };
 
-  //   function formatDuration(value: number) {
-  //     const minute = Math.floor(value / 60);
-  //     const secondLeft = value - minute * 60;
-  //     return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
-  //   }
+  function formatDuration(value: number) {
+    const minute = Math.floor(value / 60);
+    const secondLeft = value - minute * 60;
+    return `${minute}:${
+      secondLeft < 10 ? `0${secondLeft.toFixed(0)}` : secondLeft.toFixed(0)
+    }`;
+  }
 
   return (
     <>
@@ -392,7 +425,7 @@ function Home() {
                 </List>
               </Grid>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={4}>
               {curAudio && audioList.length !== 0 && (
                 <>
                   <Slider
@@ -407,6 +440,21 @@ function Home() {
                       mpTrack?.seekAudioBuffer(value);
                     }}
                   />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mt: -2
+                    }}
+                  >
+                    <TinyText>{formatDuration(position)}</TinyText>
+                    {mpTrack && (
+                      <TinyText>
+                        -{formatDuration(mpTrack?.duration - position)}
+                      </TinyText>
+                    )}
+                  </Box>
                 </>
               )}
 
