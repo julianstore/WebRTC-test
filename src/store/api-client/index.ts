@@ -9,7 +9,9 @@ const axiosInstance = axios.create({
     //Accept: 'application/json, text/plain, */*',
     'Content-Type': 'application/json', //multipart/form-data; boundary=----WebKitFormBoundaryBGVvH3OfggAP4Tad
     'Access-Control-Allow-Headers':
-      'access-control-allow-origin , access-control-allow-headers'
+      'access-control-allow-origin , access-control-allow-headers',
+    'Access-Control-Allow-Origin':
+      'https://main--chipper-heliotrope-38cc21.netlify.app'
   }
 });
 
