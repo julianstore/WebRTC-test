@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json', //multipart/form-data; boundary=----WebKitFormBoundaryBGVvH3OfggAP4Tad
     'Access-Control-Allow-Headers':
       'access-control-allow-origin , access-control-allow-headers',
-    'Access-Control-Allow-Origin': '*'
+    'Access-Control-Allow-Origin': true
   }
 });
 
