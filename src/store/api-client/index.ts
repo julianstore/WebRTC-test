@@ -9,8 +9,9 @@ const axiosInstance = axios.create({
     //Accept: 'application/json, text/plain, */*',
     'Content-Type': 'application/json', //multipart/form-data; boundary=----WebKitFormBoundaryBGVvH3OfggAP4Tad
     'Access-Control-Allow-Headers':
-      'access-control-allow-origin , access-control-allow-headers',
-    'Access-Control-Allow-Origin': true
+      'access-control-allow-origin , access-control-allow-headers , Access-Control-Allow-Credentials',
+    'Access-Control-Allow-Origin': true,
+    'Access-Control-Allow-Credentials': true
   }
 });
 
