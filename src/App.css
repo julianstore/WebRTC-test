@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  background: linear-gradient(218.66deg, #2C2C2C -25.83%, #000000 64.59%);
+  height:'100vh';
 }
 
 .App-logo {
@@ -36,3 +38,7 @@
     transform: rotate(360deg);
   }
 }
+
+.MuiSlider-thumb:is(:hover, .Mui-active) {
+    display: none;
+  }
