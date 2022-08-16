@@ -1,6 +1,6 @@
 import './App.css';
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import AuthProvider from './contexts/AuthProvider';
 import SignIn from './pages/SignIn';
@@ -21,7 +21,7 @@ function App() {
       <Provider store={store}>
         <AuthProvider>
           <Router>
-            <Routes>
+          <Switch>
               <Route path="/" element={<SignIn />} />
               {routes.map((item, index) => {
                 return (
@@ -37,7 +37,7 @@ function App() {
                 <Route key={index} path={item.path} element={item.element} />
               );
             })} */}
-            </Routes>
+            </Switch>
           </Router>
         </AuthProvider>
       </Provider>
