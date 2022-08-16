@@ -7,7 +7,6 @@ import AuthContext from '../../contexts/AuthContext';
 import DevicePanel from './DevicePanel';
 import FilePanel from './FilePanel';
 import Divider from '@mui/material/Divider';
-import { createStyles, makeStyles } from '@mui/styles';
 import { PageContainer } from '../PageContainer';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
@@ -16,21 +15,15 @@ import {
   _rtcClient,
   setAudioList
 } from '../../store/slices/trackSlice';
+import styled from 'styled-components';
 
 var intervalId: any = null;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    appId: {
-      background: 'rgba(72, 255, 245, 0.05)',
-      border: '1.5px solid #48FFF5',
-      borderRadius: '10px !important'
-    },
-    input: {
-      color: 'white !important'
-    }
-  })
-);
+const MyTextField = styled(TextField)({
+  background: 'rgba(72, 255, 245, 0.05) !important',
+  border: '1.5px solid #48FFF5 !important',
+  borderRadius: '10px !important'
+});
 
 function Home() {
   const authContext = useContext(AuthContext);
@@ -40,8 +33,6 @@ function Home() {
   );
   const [isJoined, setIsJoined] = useState(false);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
-
-  const classes = useStyles();
 
   const dispatch = useAppDispatch();
 
@@ -135,35 +126,41 @@ function Home() {
           spacing={5}
         >
           <Grid item xs={3}>
-            <TextField
+            <MyTextField
               label="App ID"
               type="text"
               name="app_id"
               value={appId}
               variant="standard"
-              InputProps={{ className: classes.input }}
+              InputProps={{
+                style: {
+                  color: 'white'
+                }
+              }}
               required
               fullWidth
               onChange={(e) => {
                 setAppID(e.target.value);
               }}
-              className={classes.appId}
             />
           </Grid>
           <Grid item xs={3}>
-            <TextField
+            <MyTextField
               label="Channel"
               type="text"
               name="channel"
               value={channel}
               variant="standard"
-              InputProps={{ className: classes.input }}
+              InputProps={{
+                style: {
+                  color: 'white'
+                }
+              }}
               required
               fullWidth
               onChange={(e) => {
                 setChannel(e.target.value);
               }}
-              className={classes.appId}
             />
           </Grid>
           <Grid item xs={6}>

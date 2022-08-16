@@ -7,67 +7,50 @@ import Select from '@mui/material/Select';
 import Grid from '@mui/material/Grid';
 import Avatar from '@mui/material/Avatar';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { createStyles, makeStyles } from '@mui/styles';
 import MicOffTwoToneIcon from '@mui/icons-material/MicOffTwoTone';
 import MicTwoToneIcon from '@mui/icons-material/MicTwoTone';
-
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { _audioTrack, setAudioTrack } from '../../store/slices/trackSlice';
+import styled from 'styled-components';
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    deviceList: {
-      background: 'rgba(72, 255, 245, 0.05) !important',
-      border: '1.5px solid #48FFF5',
-      color: 'white !important',
-      borderRadius: '42px !important'
-    },
-    diviceItem: {
-      background: 'rgb(0, 0, 0) !important',
-      color: 'white !important'
-    },
+const DeviceList = styled(Select)({
+  background: 'rgba(72, 255, 245, 0.05) !important',
+  border: '1.5px solid #48FFF5',
+  color: 'white !important',
+  borderRadius: '42px !important'
+});
 
-    diviceItem1: {
-      background: 'rgb(0, 0, 0) !important',
-      color: 'white !important'
-    },
-    dropDownIcon: {
-      marginRight: 15,
-      color: '#48FFF5'
-    },
-    micOn: {
-      border: '50% solid #48FFF5',
-      color: '#48FFF5'
-    },
-    micOnButton: {
-      border: '1.5px solid #48FFF5',
-      background: 'rgba(72, 255, 245, 0.05) !important',
-      color: '#48FFF5',
-      cursor: 'pointer'
-    },
-    micOff: {
-      border: '50% solid #FF1F70',
-      color: '#FF1F70'
-    },
-    micOffButton: {
-      border: '1.5px solid #FF1F70',
-      background: 'rgba(72, 255, 245, 0.05) !important',
-      color: '#FF1F70',
-      cursor: 'pointer'
-    },
-    micDescription: {
-      marginTop: '20px !important',
-      color: '#C8DCFF',
-      fontStyle: 'normal',
-      fontWeight: 400,
-      fontSize: 15
-    },
-    devicePanel: {
-      borderRight: '2px solid rgba(72, 255, 245, 0.25)',
-      paddingRight: 50
-    }
-  })
-);
+const DeviceItem = styled(MenuItem)({
+  background: 'rgb(0, 0, 0) !important',
+  color: 'white !important'
+});
+
+const MicOnButton = styled(Avatar)({
+  border: '1.5px solid #48FFF5',
+  background: 'rgba(72, 255, 245, 0.05) !important',
+  color: '#48FFF5',
+  cursor: 'pointer'
+});
+
+const MicOffButton = styled(Avatar)({
+  border: '1.5px solid #FF1F70',
+  background: 'rgba(72, 255, 245, 0.05) !important',
+  color: '#FF1F70',
+  cursor: 'pointer'
+});
+
+const MicDescription = styled(Typography)({
+  marginTop: '20px !important',
+  color: '#C8DCFF',
+  fontStyle: 'normal',
+  fontWeight: 400,
+  fontSize: 15
+});
+
+const DeviceWrapper = styled(Grid)({
+  borderRight: '2px solid rgba(72, 255, 245, 0.25)',
+  paddingRight: 50
+});
 
 function DevicePanel(props: any) {
   const { useClient, isJoined } = props;
@@ -77,8 +60,6 @@ function DevicePanel(props: any) {
 
   const dispatch = useAppDispatch();
   const audioTrack = useAppSelector(_audioTrack);
-
-  const classes = useStyles();
 
   useEffect(() => {
     AgoraRTC.getMicrophones()
@@ -120,13 +101,12 @@ function DevicePanel(props: any) {
 
   return (
     <>
-      <Grid
+      <DeviceWrapper
         container
         direction="row"
         justifyContent="center"
         alignItems="stretch"
         spacing={1}
-        className={classes.devicePanel}
       >
         <Grid item xs={12}>
           <Typography
@@ -141,29 +121,31 @@ function DevicePanel(props: any) {
         </Grid>
         <Grid item xs={12}>
           <FormControl fullWidth>
-            <Select
+            <DeviceList
               value={device}
               onChange={handleDeviceChange}
               displayEmpty
-              className={classes.deviceList}
               IconComponent={() => (
-                <ExpandMoreIcon className={classes.dropDownIcon} />
+                <ExpandMoreIcon style={{ marginRight: 15, color: '#48FFF5' }} />
               )}
-              MenuProps={{ classes: { paper: classes.diviceItem } }}
+              //   MenuProps={{
+              //     classes: {
+              //       paper: {
+              //         background: 'rgb(0, 0, 0) !important',
+              //         color: 'white !important'
+              //       }
+              //     }
+              //   }}
               fullWidth
             >
               {deviceList.map((item, index) => {
                 return (
-                  <MenuItem
-                    key={index}
-                    value={item.deviceId}
-                    className={classes.diviceItem1}
-                  >
+                  <DeviceItem key={index} value={item.deviceId}>
                     {item.label}
-                  </MenuItem>
+                  </DeviceItem>
                 );
               })}
-            </Select>
+            </DeviceList>
           </FormControl>
         </Grid>
         {isJoined && !micOn && device && (
@@ -175,12 +157,14 @@ function DevicePanel(props: any) {
             direction="column"
             alignItems={'center'}
           >
-            <Avatar className={classes.micOnButton} onClick={handleMicOn}>
-              <MicTwoToneIcon className={classes.micOn} />
-            </Avatar>
-            <Typography className={classes.micDescription}>
+            <MicOnButton onClick={handleMicOn}>
+              <MicTwoToneIcon
+                style={{ border: '50% solid #48FFF5', color: '#48FFF5' }}
+              />
+            </MicOnButton>
+            <MicDescription>
               Input source is broacasting. Click to mute.
-            </Typography>
+            </MicDescription>
           </Grid>
         )}
         {isJoined && micOn && device && (
@@ -192,15 +176,17 @@ function DevicePanel(props: any) {
             direction="column"
             alignItems={'center'}
           >
-            <Avatar className={classes.micOffButton} onClick={handleMicOff}>
-              <MicOffTwoToneIcon className={classes.micOff} />
-            </Avatar>
-            <Typography className={classes.micDescription}>
+            <MicOffButton onClick={handleMicOff}>
+              <MicOffTwoToneIcon
+                style={{ border: '50% solid #FF1F70', color: '#FF1F70' }}
+              />
+            </MicOffButton>
+            <MicDescription>
               Input source is muted. Click to broadcast.
-            </Typography>
+            </MicDescription>
           </Grid>
         )}
-      </Grid>
+      </DeviceWrapper>
     </>
   );
 }

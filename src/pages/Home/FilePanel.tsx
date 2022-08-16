@@ -16,8 +16,6 @@ import StopOutlinedIcon from '@mui/icons-material/StopOutlined';
 import SkipNextOutlinedIcon from '@mui/icons-material/SkipNextOutlined';
 import SkipPreviousOutlinedIcon from '@mui/icons-material/SkipPreviousOutlined';
 import AddIcon from '@mui/icons-material/Add';
-import { styled } from '@mui/material/styles';
-import { createStyles, makeStyles } from '@mui/styles';
 import CircleIcon from '@mui/icons-material/Circle';
 import AuthContext from '../../contexts/AuthContext';
 import { useContext } from 'react';
@@ -29,6 +27,7 @@ import {
   _audioList
 } from '../../store/slices/trackSlice';
 import { ToastContainer, toast } from 'react-toastify';
+import styled from 'styled-components';
 
 var intervalId: any = null;
 
@@ -39,59 +38,51 @@ const TinyText = styled(Typography)({
   color: '#48FFF5'
 });
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    add: {
-      background: 'rgba(0, 0, 0, 0.05) !important',
-      border: '1.5px solid #48FFF5 !important',
-      //   borderBottom: '0px !important',
-      color: '#48FFF5 !important',
-      borderRadius: '10px 10px 0px 0px !important',
-      height: '40px !important',
-      display: 'flex',
-      justifyContent: 'space-between !important',
-      textTransform: 'none'
-    },
-    audioList: {
-      border: '1.5px solid #48FFF5',
-      color: '#48FFF5',
-      borderRadius: '0px 0px 10px 10px !important',
-      padding: '0px !important'
-    },
-    audioListItem: {
-      height: '40px !important',
-      borderTop: '1.5px solid #48FFF5',
-      '&.Mui-selected': {
-        background: 'rgba(72, 255, 245, 0.05) !important'
-      }
-    },
-    selectedMark: {
-      fontSize: '15px !important',
-      color: '#48FFF5'
-    },
-    thumb: {
-      background: 'rgba(0,0,0,0) !important'
-    },
-    rail: {
-      background: '#464646 !important'
-    },
-    track: {
-      background: '#48FFF5 !important'
-    },
-    markLabel: {
-      color: '#48FFF5 !important'
-    },
-    audioControls: {
-      color: '#48FFF5 !important',
-      '&:hover': {
-        cursor: 'pointer'
-      }
-    },
-    filePanel: {
-      paddingLeft: 50
-    }
-  })
-);
+const AddBtn = styled(Button)({
+  background: 'rgba(0, 0, 0, 0.05) !important',
+  border: '1.5px solid #48fff5 !important',
+  color: '#48fff5 !important',
+  borderRadius: '10px 10px 0px 0px !important',
+  height: '40px !important',
+  display: 'flex',
+  justifyContent: 'space-between !important',
+  textTransform: 'none'
+});
+
+const AudioList = styled(List)({
+  border: '1.5px solid #48fff5',
+  color: '#48fff5',
+  borderRadius: '0px 0px 10px 10px !important',
+  padding: '0px !important'
+});
+
+const AudioListItem = styled(ListItem)({
+  height: '40px !important',
+  borderTop: '1.5px solid #48FFF5',
+  '&.Mui-selected': {
+    background: 'rgba(72, 255, 245, 0.05) !important'
+  }
+});
+
+const SelectMark = styled(CircleIcon)({
+  fontSize: '15px !important',
+  color: '#48FFF5'
+});
+
+const TrackSlider = styled(Slider)({
+  '& .MuiSlider-thumb': {
+    background: 'rgba(0,0,0,0) !important'
+  },
+  '& .MuiSlider-track': {
+    background: '#48FFF5 !important'
+  },
+  '& .MuiSlider-rail': {
+    background: '#464646 !important'
+  },
+  '& .MuiSlider-markLabel': {
+    color: '#48FFF5 !important'
+  }
+});
 
 function FilePanel(props: any) {
   const { useClient } = props;
@@ -101,7 +92,6 @@ function FilePanel(props: any) {
   const [curAudio, setCurAudio] = useState<File>();
   const [position, setPosition] = useState(0);
 
-  const classes = useStyles();
   const authContext = useContext(AuthContext);
 
   console.log('authContext', authContext);
@@ -174,7 +164,7 @@ function FilePanel(props: any) {
     console.log(useClient?.connectionState);
     clearInterval(intervalId);
     if (useClient?.connectionState !== 'CONNECTED') {
-      toast.warning('RTC Client is disconnected, please join!');
+      toast.warning('RTC Client is not connected, please join!');
     }
     if (useClient?.connectionState === 'CONNECTED' && mpTrack != null) {
       intervalId = setInterval(() => {
@@ -195,6 +185,7 @@ function FilePanel(props: any) {
   const handlePause = async () => {
     console.log(useClient?.connectionState);
     setPaused(true);
+    setIsPlaying(false);
     mpTrack.pauseProcessAudioBuffer();
     clearInterval(intervalId);
   };
@@ -205,6 +196,7 @@ function FilePanel(props: any) {
         mpTrack.stopProcessAudioBuffer();
         setPosition(0);
         setMPTrack(null);
+        setIsPlaying(false);
         clearInterval(intervalId);
       });
     }
@@ -249,7 +241,7 @@ function FilePanel(props: any) {
         justifyContent="center"
         alignItems="stretch"
         spacing={1}
-        className={classes.filePanel}
+        style={{ paddingLeft: 50 }}
       >
         <Grid item xs={12}>
           <Typography
@@ -265,15 +257,14 @@ function FilePanel(props: any) {
         <Grid item xs={12} container>
           <Grid item xs={8} container>
             <Grid item xs={12}>
-              <Button
+              <AddBtn
                 variant="contained"
-                className={classes.add}
                 onClick={() => fileInput?.current?.click()}
                 fullWidth
               >
                 <Typography>Track Name</Typography>
                 <AddIcon />
-              </Button>
+              </AddBtn>
               <input
                 ref={fileInput}
                 type="file"
@@ -283,18 +274,14 @@ function FilePanel(props: any) {
             </Grid>
             <Grid item xs={12}>
               {audioList.length > 0 && (
-                <List className={classes.audioList}>
+                <AudioList>
                   {audioList.map((item: any, index: any) => {
                     return (
-                      <ListItem
-                        disablePadding
-                        key={index}
-                        className={classes.audioListItem}
-                      >
+                      <AudioListItem disablePadding key={index}>
                         <ListItemButton selected={item === curAudio}>
                           {item === curAudio && (
                             <ListItemIcon style={{ minWidth: 30 }}>
-                              <CircleIcon className={classes.selectedMark} />
+                              <SelectMark />
                             </ListItemIcon>
                           )}
                           <ListItemText
@@ -314,10 +301,10 @@ function FilePanel(props: any) {
                             }}
                           />
                         </ListItemButton>
-                      </ListItem>
+                      </AudioListItem>
                     );
                   })}
-                </List>
+                </AudioList>
               )}
             </Grid>
           </Grid>
@@ -335,7 +322,7 @@ function FilePanel(props: any) {
                     {curAudio.name} - {formatDuration(position)}
                   </TinyText>
                 </Box>
-                <Slider
+                <TrackSlider
                   size="small"
                   value={position}
                   aria-label="Small"
@@ -355,44 +342,56 @@ function FilePanel(props: any) {
                     mpTrack?.seekAudioBuffer(value);
                   }}
                   style={{ color: '#48FFF5' }}
-                  classes={{
-                    thumb: classes.thumb,
-                    track: classes.track,
-                    rail: classes.rail,
-                    markLabel: classes.markLabel
-                  }}
                 />
               </>
             )}
           </Grid>
           <Grid item xs={8} container direction="row" justifyContent={'center'}>
             <SkipPreviousOutlinedIcon
-              className={classes.audioControls}
+              style={{
+                color: '#48FFF5',
+                cursor: 'pointer'
+              }}
               onClick={handlePrev}
             />
             {isPlaying ? (
               <PlayArrowIcon
-                className={classes.audioControls}
+                style={{
+                  color: '#48FFF5',
+                  cursor: 'pointer'
+                }}
                 onClick={handlePlay}
               />
             ) : (
               <PlayArrowOutlinedIcon
-                className={classes.audioControls}
+                style={{
+                  color: '#48FFF5',
+                  cursor: 'pointer'
+                }}
                 onClick={handlePlay}
               />
             )}
 
             <PauseOutlinedIcon
-              className={classes.audioControls}
+              style={{
+                color: '#48FFF5',
+                cursor: 'pointer'
+              }}
               onClick={handlePause}
             />
             <StopOutlinedIcon
-              className={classes.audioControls}
+              style={{
+                color: '#48FFF5',
+                cursor: 'pointer'
+              }}
               onClick={handleStop}
             />
 
             <SkipNextOutlinedIcon
-              className={classes.audioControls}
+              style={{
+                color: '#48FFF5',
+                cursor: 'pointer'
+              }}
               onClick={handleNext}
             />
           </Grid>

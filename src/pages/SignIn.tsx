@@ -6,51 +6,46 @@ import { injectStyle } from 'react-toastify/dist/inject-style';
 import { ToastContainer, toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { PageContainer } from './PageContainer';
-import { createStyles, makeStyles } from '@mui/styles';
+import styled from 'styled-components';
 
 if (typeof window !== 'undefined') {
   injectStyle();
 }
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    inputField: {
-      borderBottom: '1.5px solid #6A6F79 !important',
-      '&:focus': {
-        borderBottom: '1.5px solid #48FFF5 !important'
-      }
-    },
-    input: {
-      color: 'white !important',
-      background: 'black'
-    },
-    description: {
-      color: 'white !important',
-      fontWeight: 400,
-      fontSize: 16
-    },
-    panelWrapper: {
-      marginTop: '100px !important',
-      marginLeft: '200px !important'
-    },
-    loginBtn: {
-      textTransform: 'none',
-      background: '#48FFF5 !important',
-      boxShadow: '0px 0px 34px 2px rgba(72, 255, 245, 0.54)',
-      borderRadius: '42px !important',
-      color: 'black !important'
-    },
-    loginBtnCaption: {
-      fontWeight: 700,
-      fontSize: '18px'
-    }
-  })
-);
+const Input = styled(TextField)({
+  borderBottom: '1.5px solid #6A6F79 !important',
+  '&:focus': {
+    borderBottom: '1.5px solid #48FFF5 !important'
+  }
+});
+
+const Description = styled(Typography)({
+  color: 'white !important',
+  fontWeight: 400,
+  fontSize: 16
+});
+
+const LoginBtn = styled(Button)({
+  textTransform: 'none',
+  background: '#48FFF5 !important',
+  boxShadow: '0px 0px 34px 2px rgba(72, 255, 245, 0.54)',
+  borderRadius: '42px !important',
+  color: 'black !important'
+});
+
+const LoginBtnCaption = styled(Typography)({
+  fontWeight: 700,
+  fontSize: '18px'
+});
+
+const PanelWrapper = styled(Grid)({
+  marginTop: '100px !important',
+  marginLeft: '200px !important'
+});
 
 const SignIn = () => {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
-  const classes = useStyles();
   const [userLogin, setUserLogin] = useState('');
   const [password, setPassword] = useState('');
   const handleSignIn = async (userLogin: string, password: string) => {
@@ -68,15 +63,15 @@ const SignIn = () => {
   };
   return (
     <PageContainer>
-      <Grid container spacing={2} item xs={3} className={classes.panelWrapper}>
+      <PanelWrapper container spacing={2} item xs={3}>
         <Grid item xs={12}>
-          <Typography className={classes.description}>
+          <Description>
             Sign in with your WeDream ID. If you don’t have one yet, sign up for
             one on the app first.
-          </Typography>
+          </Description>
         </Grid>
         <Grid item xs={12} style={{ margin: '10px auto' }}>
-          <TextField
+          <Input
             sx={{
               '& .MuiFormLabel-root': {
                 color: '#6A6F79'
@@ -90,16 +85,20 @@ const SignIn = () => {
             type="text"
             value={userLogin}
             variant="standard"
-            className={classes.inputField}
             onChange={(e) => {
               setUserLogin(e.target.value);
             }}
-            inputProps={{ className: classes.input }}
+            inputProps={{
+              style: {
+                color: 'white !important',
+                background: 'black'
+              }
+            }}
             fullWidth
           />
         </Grid>
         <Grid item xs={12} style={{ margin: '10px auto' }}>
-          <TextField
+          <Input
             sx={{
               '& .MuiFormLabel-root': {
                 color: '#6A6F79'
@@ -112,27 +111,30 @@ const SignIn = () => {
             type="password"
             value={password}
             variant="standard"
-            className={classes.inputField}
             onChange={(e) => {
               setPassword(e.target.value);
             }}
-            inputProps={{ className: classes.input }}
+            inputProps={{
+              style: {
+                color: 'white !important',
+                background: 'black'
+              }
+            }}
             fullWidth
           />
         </Grid>
         <Grid item xs={12} style={{ marginTop: '30px', textAlign: 'center' }}>
-          <Button
+          <LoginBtn
             variant="contained"
             onClick={() => {
               handleSignIn(userLogin, password);
             }}
             fullWidth
-            className={classes.loginBtn}
           >
-            <Typography className={classes.loginBtnCaption}>Login</Typography>
-          </Button>
+            <LoginBtnCaption>Login</LoginBtnCaption>
+          </LoginBtn>
         </Grid>
-      </Grid>
+      </PanelWrapper>
       <ToastContainer
         position="top-right"
         newestOnTop
