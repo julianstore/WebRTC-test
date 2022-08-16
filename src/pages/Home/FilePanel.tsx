@@ -221,8 +221,6 @@ function FilePanel(props: any) {
   const handleDragEnter = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
-    const fileType = e.dataTransfer.items[0].type;
-    // console.log(e);
   };
 
   const handleDrop = (e: any) => {

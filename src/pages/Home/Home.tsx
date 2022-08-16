@@ -87,11 +87,9 @@ function Home() {
       console.log('user List:', users);
     });
 
-    useClient?.on('connection-state-change', function (state: any) {
-      if (state === 'DISCONNECTED') handleJoin();
-    });
-
-    useClient?.on('');
+    // useClient?.on('connection-state-change', function (state: any) {
+    //   if (state === 'DISCONNECTED') handleJoin();
+    // });
   }, [users, useClient]);
 
   const handleLeave = async () => {
