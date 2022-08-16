@@ -90,7 +90,7 @@ const SignIn = () => {
             }}
             inputProps={{
               style: {
-                color: 'white !important',
+                color: 'white',
                 background: 'black'
               }
             }}
@@ -116,7 +116,7 @@ const SignIn = () => {
             }}
             inputProps={{
               style: {
-                color: 'white !important',
+                color: 'white',
                 background: 'black'
               }
             }}
