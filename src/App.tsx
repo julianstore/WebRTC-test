@@ -22,7 +22,7 @@ function App() {
         <AuthProvider>
           <Router>
           <Switch>
-              <Route path="/" element={<SignIn />} />
+              <Route path="/" component={<SignIn />} />
               {routes.map((item, index) => {
                 return (
                   <Route
