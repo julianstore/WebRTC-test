@@ -2,19 +2,20 @@ import { Container, Grid } from '@mui/material';
 import Button from '@mui/material/Button';
 import { TextField } from '@mui/material';
 import { useEffect, useState, useContext } from 'react';
-import AgoraRTC, { ClientConfig, IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
+import { IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
 import AuthContext from '../../contexts/AuthContext';
 import DevicePanel from './DevicePanel';
 import FilePanel from './FilePanel';
 import Divider from '@mui/material/Divider';
 import { createStyles, makeStyles } from '@mui/styles';
 import { PageContainer } from '../PageContainer';
-
-const config: ClientConfig = {
-  mode: 'rtc',
-  codec: 'h264'
-};
-let useClient = AgoraRTC.createClient(config);
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import {
+  _mpTrack,
+  _audioTrack,
+  _rtcClient,
+  setAudioList
+} from '../../store/slices/trackSlice';
 
 var intervalId: any = null;
 
@@ -42,12 +43,18 @@ function Home() {
 
   const classes = useStyles();
 
+  const dispatch = useAppDispatch();
+
+  const useClient = useAppSelector(_rtcClient);
+  const mpTrack = useAppSelector(_mpTrack);
+  const audioTrack = useAppSelector(_audioTrack);
+
   console.log('users:', users);
   useEffect(() => {
-    if (useClient.connectionState === 'CONNECTED') setIsJoined(true);
+    if (useClient?.connectionState === 'CONNECTED') setIsJoined(true);
 
-    useClient.on('user-published', async (user: any, mediaType: any) => {
-      await useClient.subscribe(user, mediaType);
+    useClient?.on('user-published', async (user: any, mediaType: any) => {
+      await useClient?.subscribe(user, mediaType);
       console.log('subscribe success');
       if (mediaType === 'video') {
         setUsers((prevUsers) => {
@@ -59,7 +66,7 @@ function Home() {
       }
     });
 
-    useClient.on('user-unpublished', (user: any, type: any) => {
+    useClient?.on('user-unpublished', (user: any, type: any) => {
       console.log('unpublished', user, type);
       if (type === 'audio') {
         user.audioTrack?.stop();
@@ -72,7 +79,7 @@ function Home() {
       console.log('user List:', users);
     });
 
-    useClient.on('user-left', (user: any) => {
+    useClient?.on('user-left', (user: any) => {
       console.log('leaving', user);
       setUsers((prevUsers) => {
         return prevUsers.filter((User) => User.uid !== user.uid);
@@ -80,34 +87,35 @@ function Home() {
       console.log('user List:', users);
     });
 
-    useClient.on('connection-state-change', () => {
-      console.log('status changed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    useClient?.on('connection-state-change', function (state: any) {
+      if (state === 'DISCONNECTED') handleJoin();
     });
-  }, [users]);
+
+    useClient?.on('');
+  }, [users, useClient]);
 
   const handleLeave = async () => {
-    // await audioTrack?.stop();
-    // await audioTrack?.close();
-    // await mpTrack?.stop();
-    // await mpTrack?.close();
+    await audioTrack?.stop();
+    await audioTrack?.close();
+    await mpTrack?.stop();
+    await mpTrack?.close();
 
-    await useClient?.leave().then((res) => {
+    await useClient?.leave().then(() => {
+      dispatch(setAudioList([]));
       setIsJoined(false);
-      //   setAudioList([]);
-      //   setPosition(0);
       clearInterval(intervalId);
     });
   };
 
   const handleJoin = async () => {
-    await useClient.leave();
+    await useClient?.leave();
 
     try {
-      await useClient.join(
+      await useClient?.join(
         appId,
         channel,
         null,
-        'boomboxU$3r-' + authContext.account?.userId
+        'boomboxU$3r-' + authContext.account?.authToken.userId
       );
 
       setIsJoined(!isJoined);
@@ -116,15 +124,6 @@ function Home() {
       console.error(e);
     }
   };
-
-  //   const handleLogout = async () => {
-  //     // await handleStop();
-  //     // await handleMicOff();
-  //     await handleLeave();
-  //     authContext.signout(() => {
-  //       navigate('/');
-  //     });
-  //   };
 
   return (
     <PageContainer>

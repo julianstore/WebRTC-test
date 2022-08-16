@@ -4,6 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import AuthContext from '../contexts/AuthContext';
 import { useContext } from 'react';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import AgoraRTC, { ClientConfig } from 'agora-rtc-sdk-ng';
+import {
+  setRTCClient,
+  setAudioList,
+  _mpTrack,
+  _audioTrack,
+  _rtcClient
+} from '../store/slices/trackSlice';
+import { useEffect } from 'react';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -37,7 +47,40 @@ export const Header = () => {
   const classes = useStyles();
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const config: ClientConfig = {
+    mode: 'rtc',
+    codec: 'h264'
+  };
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    let useClient = AgoraRTC.createClient(config);
+    if (useClient) dispatch(setRTCClient(useClient));
+    // eslint-disable-next-line
+  }, []);
+
+  const mpTrack = useAppSelector(_mpTrack);
+  const audioTrack = useAppSelector(_audioTrack);
+  const rtcClient = useAppSelector(_rtcClient);
+
   const handleLogout = async () => {
+    if (rtcClient.connectionState === 'CONNECTED') {
+      await rtcClient.unpublish([mpTrack]).then(() => {
+        mpTrack.stopProcessAudioBuffer();
+      });
+
+      await mpTrack?.stop();
+      await mpTrack?.close();
+
+      await rtcClient?.unpublish([audioTrack]);
+      await audioTrack?.stop();
+      await audioTrack?.close();
+
+      await rtcClient?.leave();
+    }
+
+    dispatch(setAudioList([]));
     authContext.signout(() => {
       navigate('/');
     });

@@ -11,6 +11,9 @@ import { createStyles, makeStyles } from '@mui/styles';
 import MicOffTwoToneIcon from '@mui/icons-material/MicOffTwoTone';
 import MicTwoToneIcon from '@mui/icons-material/MicTwoTone';
 
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { _audioTrack, setAudioTrack } from '../../store/slices/trackSlice';
+
 const useStyles = makeStyles(() =>
   createStyles({
     deviceList: {
@@ -69,9 +72,11 @@ const useStyles = makeStyles(() =>
 function DevicePanel(props: any) {
   const { useClient, isJoined } = props;
   const [deviceList, setDeviceList] = useState<MediaDeviceInfo[]>([]);
-  const [audioTrack, setAudioTrack] = useState<any>(null);
   const [device, setDevice] = useState('');
   const [micOn, setMicOn] = useState(false);
+
+  const dispatch = useAppDispatch();
+  const audioTrack = useAppSelector(_audioTrack);
 
   const classes = useStyles();
 
@@ -88,23 +93,23 @@ function DevicePanel(props: any) {
   }, []);
 
   const handleMicOn = async () => {
-    console.log('useClient.connectionState', useClient.connectionState);
+    console.log('useClient?.connectionState', useClient?.connectionState);
 
     const configA = {
       microphoneId: device
     };
 
-    if (useClient.connectionState === 'CONNECTED') {
+    if (useClient?.connectionState === 'CONNECTED') {
       const tempTrack: any = await AgoraRTC.createMicrophoneAudioTrack(configA);
-      setAudioTrack(tempTrack);
-      await useClient.publish([audioTrack]).then(() => {
+      dispatch(setAudioTrack(tempTrack));
+      await useClient?.publish([tempTrack]).then(() => {
         setMicOn(!micOn);
       });
     }
   };
 
   const handleMicOff = async () => {
-    await useClient.unpublish([audioTrack]).then(() => {
+    await useClient?.unpublish([audioTrack]).then(() => {
       setMicOn(!micOn);
     });
   };

@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Header } from './Header';
 import AuthContext from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -18,9 +17,6 @@ export const PageContainer = (props: PageContainerProps) => {
 
   return (
     <>
-      <Helmet>
-        <title>Home - Applications</title>
-      </Helmet>
       <Header></Header>
       {children}
     </>

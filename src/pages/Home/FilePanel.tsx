@@ -10,6 +10,7 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Slider from '@mui/material/Slider';
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseOutlinedIcon from '@mui/icons-material/PauseOutlined';
 import StopOutlinedIcon from '@mui/icons-material/StopOutlined';
 import SkipNextOutlinedIcon from '@mui/icons-material/SkipNextOutlined';
@@ -18,6 +19,16 @@ import AddIcon from '@mui/icons-material/Add';
 import { styled } from '@mui/material/styles';
 import { createStyles, makeStyles } from '@mui/styles';
 import CircleIcon from '@mui/icons-material/Circle';
+import AuthContext from '../../contexts/AuthContext';
+import { useContext } from 'react';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import {
+  _mpTrack,
+  setMPTrack,
+  addAudio,
+  _audioList
+} from '../../store/slices/trackSlice';
+import { ToastContainer, toast } from 'react-toastify';
 
 var intervalId: any = null;
 
@@ -67,6 +78,9 @@ const useStyles = makeStyles(() =>
     track: {
       background: '#48FFF5 !important'
     },
+    markLabel: {
+      color: '#48FFF5 !important'
+    },
     audioControls: {
       color: '#48FFF5 !important',
       '&:hover': {
@@ -83,26 +97,37 @@ function FilePanel(props: any) {
   const { useClient } = props;
   const fileInput = useRef<HTMLInputElement>(null);
   const [paused, setPaused] = useState(false);
-  const [mpTrack, setMPTrack] = useState<any>(null);
-  const [audioList, setAudioList] = useState<File[]>([]);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [curAudio, setCurAudio] = useState<File>();
   const [position, setPosition] = useState(0);
 
   const classes = useStyles();
+  const authContext = useContext(AuthContext);
+
+  console.log('authContext', authContext);
+
+  const dispatch = useAppDispatch();
+  const mpTrack = useAppSelector(_mpTrack);
+  const audioList = useAppSelector(_audioList);
 
   useEffect(() => {
     console.log('MpTrack is updated', mpTrack);
 
     handlePlay();
     mpTrack?.on('source-state-change', (currentState: AudioSourceState) => {
+      if (currentState === 'playing') {
+        setIsPlaying(true);
+      }
       if (currentState === 'paused') {
         clearInterval(intervalId);
         setPaused(true);
+        setIsPlaying(false);
       }
       if (currentState === 'stopped') {
         clearInterval(intervalId);
         setPosition(0);
-        setMPTrack(null);
+        dispatch(setMPTrack(null));
+        setIsPlaying(false);
       }
     });
     // eslint-disable-next-line
@@ -117,11 +142,11 @@ function FilePanel(props: any) {
     };
     const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
     setCurAudio(newAudio);
-    setMPTrack(tempMPTrack);
+    dispatch(setMPTrack(tempMPTrack));
   };
 
   const fileUpload = async (e: any) => {
-    setAudioList((list) => [...list, e.target.files[0]]);
+    dispatch(addAudio(e.target.files[0]));
     audioChange(e.target.files[0]);
   };
 
@@ -146,9 +171,12 @@ function FilePanel(props: any) {
   };
 
   const handlePlay = async () => {
-    console.log(useClient.connectionState);
+    console.log(useClient?.connectionState);
     clearInterval(intervalId);
-    if (useClient.connectionState === 'CONNECTED' && mpTrack != null) {
+    if (useClient?.connectionState !== 'CONNECTED') {
+      toast.warning('RTC Client is disconnected, please join!');
+    }
+    if (useClient?.connectionState === 'CONNECTED' && mpTrack != null) {
       intervalId = setInterval(() => {
         setPosition(mpTrack?.getCurrentTime());
       }, 1000);
@@ -156,7 +184,7 @@ function FilePanel(props: any) {
         mpTrack.resumeProcessAudioBuffer();
         setPaused(false);
       } else {
-        await useClient.publish([mpTrack]).then(() => {
+        await useClient?.publish([mpTrack]).then(() => {
           mpTrack.startProcessAudioBuffer();
           // mpTrack.play();
         });
@@ -165,15 +193,15 @@ function FilePanel(props: any) {
   };
 
   const handlePause = async () => {
-    console.log(useClient.connectionState);
+    console.log(useClient?.connectionState);
     setPaused(true);
     mpTrack.pauseProcessAudioBuffer();
     clearInterval(intervalId);
   };
 
   const handleStop = async () => {
-    if (useClient.connectionState === 'CONNECTED') {
-      await useClient.unpublish([mpTrack]).then(() => {
+    if (useClient?.connectionState === 'CONNECTED') {
+      await useClient?.unpublish([mpTrack]).then(() => {
         mpTrack.stopProcessAudioBuffer();
         setPosition(0);
         setMPTrack(null);
@@ -190,8 +218,33 @@ function FilePanel(props: any) {
     }`;
   }
 
+  const handleDragEnter = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fileType = e.dataTransfer.items[0].type;
+    // console.log(e);
+  };
+
+  const handleDrop = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fileType = e.dataTransfer.items[0].type;
+    console.log(e.dataTransfer);
+    if (fileType.includes('audio')) {
+      dispatch(addAudio(e.dataTransfer.files[0]));
+      audioChange(e.dataTransfer.files[0]);
+    } else {
+      toast.warning('Invalid audio file');
+    }
+  };
+
   return (
-    <>
+    <div
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragEnter}
+      onDragOver={handleDragEnter}
+      onDrop={handleDrop}
+    >
       <Grid
         container
         direction="row"
@@ -291,10 +344,14 @@ function FilePanel(props: any) {
                   step={1}
                   min={0}
                   max={mpTrack?.duration}
-                  marks={[mpTrack?.duration].map((i) => ({
-                    label: formatDuration(mpTrack?.duration),
-                    value: i
-                  }))}
+                  marks={[
+                    {
+                      label: mpTrack?.duration
+                        ? formatDuration(mpTrack?.duration)
+                        : '',
+                      value: mpTrack?.duration ? mpTrack?.duration : 0
+                    }
+                  ]}
                   onChange={(_, value) => {
                     setPosition(value as number);
                     mpTrack?.seekAudioBuffer(value);
@@ -304,8 +361,7 @@ function FilePanel(props: any) {
                     thumb: classes.thumb,
                     track: classes.track,
                     rail: classes.rail,
-                    mark: classes.rail,
-                    valueLabel: classes.track
+                    markLabel: classes.markLabel
                   }}
                 />
               </>
@@ -316,10 +372,18 @@ function FilePanel(props: any) {
               className={classes.audioControls}
               onClick={handlePrev}
             />
-            <PlayArrowOutlinedIcon
-              className={classes.audioControls}
-              onClick={handlePlay}
-            />
+            {isPlaying ? (
+              <PlayArrowIcon
+                className={classes.audioControls}
+                onClick={handlePlay}
+              />
+            ) : (
+              <PlayArrowOutlinedIcon
+                className={classes.audioControls}
+                onClick={handlePlay}
+              />
+            )}
+
             <PauseOutlinedIcon
               className={classes.audioControls}
               onClick={handlePause}
@@ -336,7 +400,12 @@ function FilePanel(props: any) {
           </Grid>
         </Grid>
       </Grid>
-    </>
+      <ToastContainer
+        position="top-right"
+        newestOnTop
+        style={{ marginTop: 100, zIndex: '99999 !important' }}
+      />
+    </div>
   );
 }
 

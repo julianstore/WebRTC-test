@@ -6,8 +6,8 @@ import AuthProvider from './contexts/AuthProvider';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home/Home';
 import AuthRoute from './contexts/AuthRoute';
-import { HelmetProvider } from 'react-helmet-async';
-
+import store from './store/store';
+import { Provider } from 'react-redux';
 function App() {
   const routes = [
     {
@@ -17,29 +17,31 @@ function App() {
   ];
 
   return (
-    <AuthProvider>
-      <HelmetProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<SignIn />} />
-            {routes.map((item, index) => {
-              return (
-                <Route
-                  key={index}
-                  path={item.path}
-                  element={<AuthRoute>{item.element}</AuthRoute>}
-                />
-              );
-            })}
-            {/* {routes.map((item, index) => {
+    <>
+      <Provider store={store}>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<SignIn />} />
+              {routes.map((item, index) => {
+                return (
+                  <Route
+                    key={index}
+                    path={item.path}
+                    element={<AuthRoute>{item.element}</AuthRoute>}
+                  />
+                );
+              })}
+              {/* {routes.map((item, index) => {
               return (
                 <Route key={index} path={item.path} element={item.element} />
               );
             })} */}
-          </Routes>
-        </Router>
-      </HelmetProvider>
-    </AuthProvider>
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </Provider>
+    </>
   );
 }
 
