@@ -45,7 +45,7 @@ const PanelWrapper = styled(Grid)({
 
 const SignIn = () => {
   const authContext = useContext(AuthContext);
-  const navigate = useHistory();
+  const history = useHistory();
   const [userLogin, setUserLogin] = useState('');
   const [password, setPassword] = useState('');
   const handleSignIn = async (userLogin: string, password: string) => {
@@ -54,7 +54,7 @@ const SignIn = () => {
         toast.success('Success!!!');
         localStorage.setItem('wedream-auth-token', res.data.token);
         authContext.signin(res.data, () => {
-          navigate('/home');
+          history.push('/home');
         });
       } else {
         toast.warning(res.data.ERR_CODE);

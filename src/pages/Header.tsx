@@ -1,5 +1,5 @@
 import { Typography, Grid, Box } from '@mui/material';
-import { useHistory  } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import AuthContext from '../contexts/AuthContext';
 import { useContext } from 'react';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
@@ -44,7 +44,7 @@ const Title = styled(Typography)({
 
 export const Header = () => {
   const authContext = useContext(AuthContext);
-  const navigate = useHistory();
+  const history = useHistory();
 
   const config: ClientConfig = {
     mode: 'rtc',
@@ -80,7 +80,7 @@ export const Header = () => {
 
     dispatch(setAudioList([]));
     authContext.signout(() => {
-      navigate('/');
+      history.push('/');
     });
   };
 

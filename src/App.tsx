@@ -21,17 +21,14 @@ function App() {
       <Provider store={store}>
         <AuthProvider>
           <Router>
-          <Switch>
+            <Switch>
               <Route path="/">
-         	<SignIn/>
+                <SignIn />
               </Route>
               {routes.map((item, index) => {
                 return (
-                  <Route
-                    key={index}
-                    path={item.path}
-                  >
- 			<AuthRoute>{item.element}</AuthRoute>
+                  <Route key={index} path={item.path}>
+                    <AuthRoute>{item.element}</AuthRoute>
                   </Route>
                 );
               })}
