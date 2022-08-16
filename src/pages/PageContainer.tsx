@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Header } from './Header';
 import AuthContext from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useHistory  } from 'react-router-dom';
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ interface PageContainerProps {
 export const PageContainer = (props: PageContainerProps) => {
   const { children } = props;
   const { isAuthenticated } = React.useContext(AuthContext);
-  const navigate = useNavigate();
+  const navigate = useHistory();
   useEffect(() => {
     if (!isAuthenticated) navigate('/');
   }, [isAuthenticated, navigate]);

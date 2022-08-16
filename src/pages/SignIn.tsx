@@ -4,7 +4,7 @@ import AuthContext from '../contexts/AuthContext';
 import * as api from '../store/api-client';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import { ToastContainer, toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { PageContainer } from './PageContainer';
 import styled from 'styled-components';
 
@@ -45,7 +45,7 @@ const PanelWrapper = styled(Grid)({
 
 const SignIn = () => {
   const authContext = useContext(AuthContext);
-  const navigate = useNavigate();
+  const navigate = useHistory();
   const [userLogin, setUserLogin] = useState('');
   const [password, setPassword] = useState('');
   const handleSignIn = async (userLogin: string, password: string) => {

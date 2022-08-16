@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation, Redirect } from 'react-router-dom';
 
 import AuthContext from './AuthContext';
 
@@ -11,7 +11,7 @@ const AuthRoute = ({ children }: { children: JSX.Element }) => {
   const auth = useAuth();
   const location = useLocation();
   if (!auth.isAuthenticated) {
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return <Redirect to="/" state={{ from: location }} replace />;
   }
   return children;
 };
