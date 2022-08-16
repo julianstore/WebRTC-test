@@ -28,7 +28,7 @@ function App() {
                   <Route
                     key={index}
                     path={item.path}
-                    element={<AuthRoute>{item.element}</AuthRoute>}
+                    component={<AuthRoute>{item.element}</AuthRoute>}
                   />
                 );
               })}
