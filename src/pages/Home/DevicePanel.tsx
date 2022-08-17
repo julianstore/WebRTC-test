@@ -157,13 +157,13 @@ function DevicePanel(props: any) {
             direction="column"
             alignItems={'center'}
           >
-            <MicOnButton onClick={handleMicOn}>
-              <MicTwoToneIcon
-                style={{ border: '50% solid #48FFF5', color: '#48FFF5' }}
+            <MicOffButton onClick={handleMicOff}>
+              <MicOffTwoToneIcon
+                style={{ border: '50% solid #FF1F70', color: '#FF1F70' }}
               />
-            </MicOnButton>
+            </MicOffButton>
             <MicDescription>
-              Input source is broacasting. Click to mute.
+              Input source is muted. Click to broadcast.
             </MicDescription>
           </Grid>
         )}
@@ -176,13 +176,13 @@ function DevicePanel(props: any) {
             direction="column"
             alignItems={'center'}
           >
-            <MicOffButton onClick={handleMicOff}>
-              <MicOffTwoToneIcon
-                style={{ border: '50% solid #FF1F70', color: '#FF1F70' }}
+            <MicOnButton onClick={handleMicOn}>
+              <MicTwoToneIcon
+                style={{ border: '50% solid #48FFF5', color: '#48FFF5' }}
               />
-            </MicOffButton>
+            </MicOnButton>
             <MicDescription>
-              Input source is muted. Click to broadcast.
+              Input source is broacasting. Click to mute.
             </MicDescription>
           </Grid>
         )}
