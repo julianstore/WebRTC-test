@@ -1,9 +1,9 @@
 import { Container, Grid } from '@mui/material';
 import Button from '@mui/material/Button';
 import { TextField } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
-// import AuthContext from '../../contexts/AuthContext';
+import AuthContext from '../../contexts/AuthContext';
 import DevicePanel from './DevicePanel';
 import FilePanel from './FilePanel';
 import Divider from '@mui/material/Divider';
@@ -26,7 +26,7 @@ const MyTextField = styled(TextField)({
 });
 
 function Home() {
-  //   const authContext = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
   const [appId, setAppID] = useState('56dd54658f404b64a9bcc23c132be423');
   const [channel, setChannel] = useState(
     'e5617602-8eef-4896-afa3-3a6f888d64ea'
@@ -99,13 +99,12 @@ function Home() {
   const handleJoin = async () => {
     await useClient?.leave();
 
-    let userId = Math.random().toString();
     try {
       await useClient?.join(
         appId,
         channel,
         null,
-        'boomboxU$3r-' + userId //authContext.account?.authToken.userId
+        'boomboxU$3r-' + authContext.account?.authToken.userId
       );
 
       setIsJoined(!isJoined);

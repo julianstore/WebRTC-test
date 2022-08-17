@@ -12,7 +12,7 @@ export const PageContainer = (props: PageContainerProps) => {
   const { isAuthenticated } = React.useContext(AuthContext);
   const history = useHistory();
   useEffect(() => {
-    // if (!isAuthenticated) history.push('/home');
+    if (!isAuthenticated) history.push('/');
   }, [isAuthenticated, history]);
 
   return (
