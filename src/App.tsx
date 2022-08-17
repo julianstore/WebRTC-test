@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import AuthProvider from './contexts/AuthProvider';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home/Home';
-import AuthRoute from './contexts/AuthRoute';
+// import AuthRoute from './contexts/AuthRoute';
 import store from './store/store';
 import { Provider } from 'react-redux';
 function App() {
@@ -22,21 +22,23 @@ function App() {
         <AuthProvider>
           <Router>
             <Switch>
-              <Route path="/">
+              <Route exact path="/">
                 <SignIn />
               </Route>
-              {routes.map((item, index) => {
+              {/* {routes.map((item, index) => {
                 return (
-                  <Route key={index} path={item.path}>
+                  <Route key={index} exact path={item.path}>
                     <AuthRoute>{item.element}</AuthRoute>
                   </Route>
                 );
+              })} */}
+              {routes.map((item, index) => {
+                return (
+                  <Route key={index} exact path={item.path}>
+                    {item.element}
+                  </Route>
+                );
               })}
-              {/* {routes.map((item, index) => {
-              return (
-                <Route key={index} path={item.path} element={item.element} />
-              );
-            })} */}
             </Switch>
           </Router>
         </AuthProvider>
