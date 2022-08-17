@@ -157,7 +157,7 @@ function DevicePanel(props: any) {
             direction="column"
             alignItems={'center'}
           >
-            <MicOffButton onClick={handleMicOff}>
+            <MicOffButton onClick={handleMicOn}>
               <MicOffTwoToneIcon
                 style={{ border: '50% solid #FF1F70', color: '#FF1F70' }}
               />
@@ -176,7 +176,7 @@ function DevicePanel(props: any) {
             direction="column"
             alignItems={'center'}
           >
-            <MicOnButton onClick={handleMicOn}>
+            <MicOnButton onClick={handleMicOff}>
               <MicTwoToneIcon
                 style={{ border: '50% solid #48FFF5', color: '#48FFF5' }}
               />
