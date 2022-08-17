@@ -3,7 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import AuthProvider from './contexts/AuthProvider';
-import SignIn from './pages/SignIn';
+// import SignIn from './pages/SignIn';
 import Home from './pages/Home/Home';
 // import AuthRoute from './contexts/AuthRoute';
 import store from './store/store';
@@ -23,7 +23,7 @@ function App() {
           <Router>
             <Switch>
               <Route exact path="/">
-                <SignIn />
+                <Home />
               </Route>
               {/* {routes.map((item, index) => {
                 return (
@@ -39,6 +39,11 @@ function App() {
                   </Route>
                 );
               })}
+              {/* {routes.map((item, index) => {
+              return (
+                <Route key={index} path={item.path} element={item.element} />
+              );
+            })} */}
             </Switch>
           </Router>
         </AuthProvider>

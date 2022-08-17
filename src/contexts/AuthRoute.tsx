@@ -11,7 +11,7 @@ const AuthRoute = ({ children }: { children: JSX.Element }) => {
   const auth = useAuth();
   //   const location = useLocation();
   if (!auth.isAuthenticated) {
-    return <Redirect to="/" />;
+    return <Redirect to="/home" />;
   }
   return children;
 };
