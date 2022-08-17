@@ -12,7 +12,7 @@ import Slider from '@mui/material/Slider';
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseOutlinedIcon from '@mui/icons-material/PauseOutlined';
-import StopOutlinedIcon from '@mui/icons-material/StopOutlined';
+// import StopOutlinedIcon from '@mui/icons-material/StopOutlined';
 import SkipNextOutlinedIcon from '@mui/icons-material/SkipNextOutlined';
 import SkipPreviousOutlinedIcon from '@mui/icons-material/SkipPreviousOutlined';
 import AddIcon from '@mui/icons-material/Add';
@@ -118,6 +118,7 @@ function FilePanel(props: any) {
         setPosition(0);
         dispatch(setMPTrack(null));
         setIsPlaying(false);
+        handleNext();
       }
     });
     // eslint-disable-next-line
@@ -190,17 +191,14 @@ function FilePanel(props: any) {
     clearInterval(intervalId);
   };
 
-  const handleStop = async () => {
-    if (useClient?.connectionState === 'CONNECTED') {
-      await useClient?.unpublish([mpTrack]).then(() => {
-        mpTrack.stopProcessAudioBuffer();
-        setPosition(0);
-        setMPTrack(null);
-        setIsPlaying(false);
-        clearInterval(intervalId);
-      });
-    }
-  };
+  //   const handleStop = async () => {
+  //     if (useClient?.connectionState === 'CONNECTED') {
+  //       await useClient?.unpublish([mpTrack]).then(() => {
+  //         mpTrack.stopProcessAudioBuffer();
+
+  //       });
+  //     }
+  //   };
 
   function formatDuration(value: number) {
     const minute = Math.floor(value / 60);
@@ -379,13 +377,13 @@ function FilePanel(props: any) {
               }}
               onClick={handlePause}
             />
-            <StopOutlinedIcon
+            {/* <StopOutlinedIcon
               style={{
                 color: '#48FFF5',
                 cursor: 'pointer'
               }}
               onClick={handleStop}
-            />
+            /> */}
 
             <SkipNextOutlinedIcon
               style={{
