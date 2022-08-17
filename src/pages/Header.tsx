@@ -86,7 +86,7 @@ export const Header = () => {
 
   return (
     <>
-      <Grid container item xs={6} style={{ display: 'flex' }}>
+      <Grid container item xs={10} style={{ display: 'flex' }}>
         <LogoBox>WeDream</LogoBox>
         <Box>
           <Title>Audio Streaming Portal</Title>
