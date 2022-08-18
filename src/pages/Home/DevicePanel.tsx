@@ -84,14 +84,14 @@ function DevicePanel(props: any) {
       const tempTrack: any = await AgoraRTC.createMicrophoneAudioTrack(configA);
       dispatch(setAudioTrack(tempTrack));
       await useClient?.publish([tempTrack]).then(() => {
-        setMicOn(!micOn);
+        setMicOn(true);
       });
     }
   };
 
   const handleMicOff = async () => {
     await useClient?.unpublish([audioTrack]).then(() => {
-      setMicOn(!micOn);
+      setMicOn(false);
     });
   };
 
