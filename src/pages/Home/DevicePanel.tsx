@@ -97,6 +97,7 @@ function DevicePanel(props: any) {
 
   const handleDeviceChange = (e: any) => {
     setDevice(e.target.value);
+    handleMicOff();
   };
 
   return (

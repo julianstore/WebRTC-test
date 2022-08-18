@@ -57,7 +57,7 @@ const AudioList = styled(List)({
 });
 
 const AudioListItem = styled(ListItem)({
-  height: '40px !important',
+  minHeight: '40px !important',
   borderTop: '1.5px solid #48FFF5',
   '&.Mui-selected': {
     background: 'rgba(72, 255, 245, 0.05) !important'
@@ -67,6 +67,17 @@ const AudioListItem = styled(ListItem)({
 const SelectMark = styled(CircleIcon)({
   fontSize: '15px !important',
   color: '#48FFF5'
+});
+
+const TrackName = styled(Typography)({
+  display: 'block',
+  width: '300px',
+  overflow: 'hidden',
+  whiteSpace: 'nowrap',
+  textOverflow: 'ellipsis',
+  color: '#C8DCFF',
+  fontWeight: 300,
+  fontSize: '16px'
 });
 
 const TrackSlider = styled(Slider)({
@@ -283,17 +294,7 @@ function FilePanel(props: any) {
                             </ListItemIcon>
                           )}
                           <ListItemText
-                            primary={
-                              <Typography
-                                style={{
-                                  color: '#C8DCFF',
-                                  fontWeight: 300,
-                                  fontSize: '16px'
-                                }}
-                              >
-                                {item?.name}
-                              </Typography>
-                            }
+                            primary={<TrackName>{item?.name}</TrackName>}
                             onClick={async () => {
                               audioChange(item);
                             }}
@@ -317,7 +318,8 @@ function FilePanel(props: any) {
                   }}
                 >
                   <TinyText>
-                    {curAudio.name} - {formatDuration(position)}
+                    {curAudio.name.substring(0, 40)} -{' '}
+                    {formatDuration(position)}
                   </TinyText>
                 </Box>
                 <TrackSlider
