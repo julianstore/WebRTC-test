@@ -64,14 +64,14 @@ export const Header = () => {
 
   const handleLogout = async () => {
     if (rtcClient.connectionState === 'CONNECTED') {
-      await rtcClient.unpublish([mpTrack]).then(() => {
+      await rtcClient.unpublish(mpTrack ? [mpTrack] : []).then(() => {
         mpTrack.stopProcessAudioBuffer();
       });
 
       await mpTrack?.stop();
       await mpTrack?.close();
 
-      await rtcClient?.unpublish([audioTrack]);
+      await rtcClient?.unpublish(audioTrack ? [audioTrack] : []);
       await audioTrack?.stop();
       await audioTrack?.close();
 

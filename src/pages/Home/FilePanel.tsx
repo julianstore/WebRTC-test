@@ -11,8 +11,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import Slider from '@mui/material/Slider';
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopOutlined from '@mui/icons-material/StopOutlined';
 import PauseOutlinedIcon from '@mui/icons-material/PauseOutlined';
-// import StopOutlinedIcon from '@mui/icons-material/StopOutlined';
 import SkipNextOutlinedIcon from '@mui/icons-material/SkipNextOutlined';
 import SkipPreviousOutlinedIcon from '@mui/icons-material/SkipPreviousOutlined';
 import AddIcon from '@mui/icons-material/Add';
@@ -127,9 +127,9 @@ function FilePanel(props: any) {
       if (currentState === 'stopped') {
         clearInterval(intervalId);
         setPosition(0);
-        dispatch(setMPTrack(null));
         setIsPlaying(false);
-        handleNext();
+        // dispatch(setMPTrack(null));
+        // handleNext();
       }
     });
     // eslint-disable-next-line
@@ -148,8 +148,13 @@ function FilePanel(props: any) {
   };
 
   const fileUpload = async (e: any) => {
-    dispatch(addAudio(e.target.files[0]));
-    audioChange(e.target.files[0]);
+    var file = e.target.files[0];
+    if (file.type !== 'audio/mpeg') {
+      toast.error('Not Audio format, please upload audio file!');
+    } else {
+      dispatch(addAudio(file));
+      audioChange(file);
+    }
   };
 
   const handleNext = async () => {
@@ -186,10 +191,14 @@ function FilePanel(props: any) {
         mpTrack.resumeProcessAudioBuffer();
         setPaused(false);
       } else {
-        await useClient?.publish([mpTrack]).then(() => {
-          mpTrack.startProcessAudioBuffer();
-          // mpTrack.play();
-        });
+        if (isPlaying) {
+            mpTrack.stopProcessAudioBuffer();
+        } else {
+          await useClient?.publish([mpTrack]).then(() => {
+            mpTrack.startProcessAudioBuffer();
+            // mpTrack.play();
+          });
+        }
       }
     }
   };
@@ -277,6 +286,7 @@ function FilePanel(props: any) {
               <input
                 ref={fileInput}
                 type="file"
+                accept="audio/*"
                 style={{ display: 'none' }}
                 onChange={fileUpload}
               />
@@ -355,7 +365,7 @@ function FilePanel(props: any) {
               onClick={handlePrev}
             />
             {isPlaying ? (
-              <PlayArrowIcon
+              <StopOutlined
                 style={{
                   color: '#48FFF5',
                   cursor: 'pointer'
