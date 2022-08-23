@@ -10,7 +10,6 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Slider from '@mui/material/Slider';
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopOutlined from '@mui/icons-material/StopOutlined';
 import PauseOutlinedIcon from '@mui/icons-material/PauseOutlined';
 import SkipNextOutlinedIcon from '@mui/icons-material/SkipNextOutlined';
