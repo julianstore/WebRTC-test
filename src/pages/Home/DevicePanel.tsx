@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
+import styled from 'styled-components';
 import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -9,9 +10,9 @@ import Avatar from '@mui/material/Avatar';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MicOffTwoToneIcon from '@mui/icons-material/MicOffTwoTone';
 import MicTwoToneIcon from '@mui/icons-material/MicTwoTone';
+
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { _audioTrack, setAudioTrack } from '../../store/slices/trackSlice';
-import styled from 'styled-components';
 
 const DeviceList = styled(Select)({
   background: 'rgba(72, 255, 245, 0.05) !important',
@@ -47,10 +48,14 @@ const MicDescription = styled(Typography)({
   fontSize: 15
 });
 
-const DeviceWrapper = styled(Grid)({
-  borderRight: '2px solid rgba(72, 255, 245, 0.25)',
-  paddingRight: 50
-});
+const DeviceWrapper = styled(Grid)`
+  padding-right: 50px;
+  border-right: 2px solid rgba(72, 255, 245, 0.25);
+  @media only screen and (max-width: 900px) {
+    border: 0px;
+    padding-right: 0px;
+  }
+`;
 
 function DevicePanel(props: any) {
   const { useClient, isJoined } = props;

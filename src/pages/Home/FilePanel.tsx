@@ -1,8 +1,11 @@
+import { useRef, useEffect, useState, useContext } from 'react';
+import AgoraRTC, { AudioSourceState } from 'agora-rtc-sdk-ng';
+import { FileDrop } from 'react-file-drop';
+import { ToastContainer, toast } from 'react-toastify';
+import styled from 'styled-components';
 import { Grid } from '@mui/material';
 import Button from '@mui/material/Button';
 import { Typography, Box } from '@mui/material';
-import { useRef, useEffect, useState } from 'react';
-import AgoraRTC, { AudioSourceState } from 'agora-rtc-sdk-ng';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -16,17 +19,17 @@ import SkipNextOutlinedIcon from '@mui/icons-material/SkipNextOutlined';
 import SkipPreviousOutlinedIcon from '@mui/icons-material/SkipPreviousOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import CircleIcon from '@mui/icons-material/Circle';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+
 import AuthContext from '../../contexts/AuthContext';
-import { useContext } from 'react';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
   _mpTrack,
   setMPTrack,
   addAudio,
+  removeAudio,
   _audioList
 } from '../../store/slices/trackSlice';
-import { ToastContainer, toast } from 'react-toastify';
-import styled from 'styled-components';
 
 var intervalId: any = null;
 
@@ -65,6 +68,11 @@ const AudioListItem = styled(ListItem)({
 
 const SelectMark = styled(CircleIcon)({
   fontSize: '15px !important',
+  color: '#48FFF5'
+});
+
+const RemoveMark = styled(DeleteOutlineIcon)({
+  fontSize: '22px !important',
   color: '#48FFF5'
 });
 
@@ -146,8 +154,18 @@ function FilePanel(props: any) {
     dispatch(setMPTrack(tempMPTrack));
   };
 
-  const fileUpload = async (e: any) => {
-    var file = e.target.files[0];
+  const removeAudioHandler = async (index: number, isSelected: boolean) => {
+    if (useClient?.connectionState === 'CONNECTED' && mpTrack != null && isPlaying && isSelected) {
+      mpTrack.stopProcessAudioBuffer();
+      dispatch(removeAudio(index));
+      await handleNext();
+    } else {
+      dispatch(removeAudio(index));
+    }
+  }
+
+  const fileUpload = async (files: any) => {
+    var file = files[0];
     if (file.type !== 'audio/mpeg') {
       toast.error('Not Audio format, please upload audio file!');
     } else {
@@ -227,30 +245,9 @@ function FilePanel(props: any) {
     }`;
   }
 
-  const handleDragEnter = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const fileType = e.dataTransfer.items[0].type;
-    console.log(e.dataTransfer);
-    if (fileType.includes('audio')) {
-      dispatch(addAudio(e.dataTransfer.files[0]));
-      audioChange(e.dataTransfer.files[0]);
-    } else {
-      toast.warning('Invalid audio file');
-    }
-  };
-
   return (
-    <div
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragEnter}
-      onDragOver={handleDragEnter}
-      onDrop={handleDrop}
+    <FileDrop
+      onDrop={(event) => fileUpload(event)}
     >
       <Grid
         container
@@ -258,7 +255,7 @@ function FilePanel(props: any) {
         justifyContent="center"
         alignItems="stretch"
         spacing={1}
-        style={{ paddingLeft: 50 }}
+        sx={{ paddingLeft: { xs: '0px', md: '50px'} }}
       >
         <Grid item xs={12}>
           <Typography
@@ -272,7 +269,7 @@ function FilePanel(props: any) {
           </Typography>
         </Grid>
         <Grid item xs={12} container>
-          <Grid item xs={8} container>
+          <Grid item xs={12} md={8} container>
             <Grid item xs={12}>
               <AddBtn
                 variant="contained"
@@ -287,7 +284,7 @@ function FilePanel(props: any) {
                 type="file"
                 accept="audio/*"
                 style={{ display: 'none' }}
-                onChange={fileUpload}
+                onChange={(e) => fileUpload(e.target.files)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -308,6 +305,15 @@ function FilePanel(props: any) {
                               audioChange(item);
                             }}
                           />
+
+                          <ListItemIcon 
+                            style={{ minWidth: 22 }}
+                            onClick={async () => {
+                              removeAudioHandler(index, item === curAudio);
+                            }}
+                            >
+                            <RemoveMark />
+                          </ListItemIcon>
                         </ListItemButton>
                       </AudioListItem>
                     );
@@ -316,7 +322,7 @@ function FilePanel(props: any) {
               )}
             </Grid>
           </Grid>
-          <Grid item xs={8} style={{ marginTop: 20 }}>
+          <Grid item xs={12} md={8} style={{ marginTop: 20 }}>
             {curAudio && audioList.length !== 0 && (
               <>
                 <Box
@@ -355,7 +361,7 @@ function FilePanel(props: any) {
               </>
             )}
           </Grid>
-          <Grid item xs={8} container direction="row" justifyContent={'center'}>
+          <Grid item xs={12} md={8} container direction="row" justifyContent={'center'}>
             <SkipPreviousOutlinedIcon
               style={{
                 color: '#48FFF5',
@@ -411,7 +417,7 @@ function FilePanel(props: any) {
         newestOnTop
         style={{ marginTop: 100, zIndex: '99999 !important' }}
       />
-    </div>
+    </FileDrop>
   );
 }
 

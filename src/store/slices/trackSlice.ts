@@ -23,6 +23,9 @@ const trackSlice = createSlice({
     addAudio(state: TrackState, action: PayloadAction<File>) {
       state.audioList = [action.payload, ...state.audioList];
     },
+    removeAudio(state: TrackState, action: PayloadAction<number>) {
+      state.audioList.splice(action.payload, 1);
+    },
     setAudioList(state: TrackState, action: PayloadAction<File[]>) {
       state.audioList = action.payload;
     },
@@ -49,6 +52,7 @@ export default trackSlice.reducer;
 
 export const {
   addAudio,
+  removeAudio,
   setMPTrack,
   setAudioTrack,
   setRTCClient,

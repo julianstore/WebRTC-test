@@ -1,12 +1,15 @@
-import { Grid, Typography, Button, TextField } from '@mui/material';
 import { useContext, useState } from 'react';
-import AuthContext from '../contexts/AuthContext';
-import * as api from '../store/api-client';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import { ToastContainer, toast } from 'react-toastify';
 import { useHistory } from 'react-router-dom';
-import { PageContainer } from './PageContainer';
 import styled from 'styled-components';
+import { Grid, Typography, Button, TextField } from '@mui/material';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import AuthContext from '../contexts/AuthContext';
+import * as api from '../store/api-client';
+import { PageContainer } from './PageContainer';
 
 if (typeof window !== 'undefined') {
   injectStyle();
@@ -38,32 +41,45 @@ const LoginBtnCaption = styled(Typography)({
   fontSize: '18px'
 });
 
-const PanelWrapper = styled(Grid)({
-  marginTop: '100px !important',
-  marginLeft: '200px !important'
-});
+const PanelWrapper = styled(Grid)`
+  margin-top: 100px !important;
+  margin-left: 200px !important;
+  @media only screen and (max-width: 900px) {
+    margin-top: 50px !important;
+    margin-left: 0px !important;
+    padding: 0 20px;
+  }
+`;
 
 const SignIn = () => {
   const authContext = useContext(AuthContext);
   const history = useHistory();
   const [userLogin, setUserLogin] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const handleSignIn = async (userLogin: string, password: string) => {
-    await api.signIn(userLogin, password).then((res) => {
-      if (res.status === 200) {
-        toast.success('Success!!!');
-        localStorage.setItem('wedream-auth-token', res.data.token);
-        authContext.signin(res.data, () => {
-          history.push('/home');
-        });
-      } else {
-        toast.warning(res.data.ERR_CODE);
-      }
-    });
+    if (!userLogin || !password) {
+      toast.warning("You are missing email ID or password");
+    } else {
+      setLoading(true);
+      await api.signIn(userLogin, password).then((res) => {
+        if (res.status === 200) {
+          toast.success('Success!!!');
+          localStorage.setItem('wedream-auth-token', res.data.token);
+          authContext.signin(res.data, () => {
+            history.push('/home');
+          });
+        } else {
+          toast.warning(res.data.ERR_CODE);
+        }
+      });
+      setLoading(false);
+    }
   };
   return (
     <PageContainer>
-      <PanelWrapper container spacing={2} item xs={3}>
+      <PanelWrapper container item xs={12} md={4} lg={3}>
         <Grid item xs={12}>
           <Description>
             Sign in with your WeDream ID. If you don’t have one yet, sign up for
@@ -78,7 +94,14 @@ const SignIn = () => {
               },
               '& .MuiFormLabel-root.Mui-focused': {
                 color: '#48FFF5'
-              }
+              },
+              'input:autofill': {
+                background: 'red !important'
+              },
+              'input:-webkit-autofill': {
+                textFillColor: 'white',
+                boxShadow: '0 0 0px 1000px #000 inset'
+              },
             }}
             id="standard-read-only-input"
             label="E-mail"
@@ -105,7 +128,11 @@ const SignIn = () => {
               },
               '& .MuiFormLabel-root.Mui-focused': {
                 color: '#48FFF5'
-              }
+              },
+              'input:-webkit-autofill': {
+                textFillColor: 'white',
+                boxShadow: '0 0 0px 1000px #000 inset'
+              },
             }}
             label="Password"
             type="password"
@@ -140,6 +167,12 @@ const SignIn = () => {
         newestOnTop
         style={{ marginTop: 100, zIndex: '99999 !important' }}
       />
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </PageContainer>
   );
 };

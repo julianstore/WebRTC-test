@@ -16,23 +16,20 @@ import { useEffect } from 'react';
 import styled from 'styled-components';
 
 const LogoBox = styled(Box)({
+  fontFamily: 'Poppins',
   fontWeight: 700,
   fontSize: 64,
-  display: 'flex',
   background: 'linear-gradient(296.93deg, #47FFF5 24%, #FF1F70 65.95%)',
-  width: 400,
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
-  marginLeft: 50
 });
 
 const LogoOutBox = styled(Box)({
   color: '#48FFF5 !important',
-  float: 'right',
-  marginTop: '-50px !important',
   cursor: 'pointer',
   display: 'flex',
-  paddingRight: 50
+  justifyContent: 'center',
+  alignItems: 'center'
 });
 
 const Title = styled(Typography)({
@@ -41,6 +38,12 @@ const Title = styled(Typography)({
   fontSize: '36px !important',
   marginTop: '25px !important'
 });
+
+const CenteredGrid = styled(Grid)({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center'
+})
 
 export const Header = () => {
   const authContext = useContext(AuthContext);
@@ -85,23 +88,25 @@ export const Header = () => {
   };
 
   return (
-    <>
-      <Grid container item xs={10} style={{ display: 'flex' }}>
+    <Grid container style={{ marginTop: 30 }}>
+      <CenteredGrid item xs={12} md={5} lg={4}>
         <LogoBox>WeDream</LogoBox>
+      </CenteredGrid>
+      <CenteredGrid item xs={12} md={7} lg={6}>
         <Box>
-          <Title>Audio Streaming Portal</Title>
+          <Title style={{ textAlign: 'center', fontFamily: 'Poppins'}}>Audio Streaming Portal</Title>
         </Box>
-      </Grid>
+      </CenteredGrid>
       {authContext.isAuthenticated && (
-        <Grid item xs={2}>
+        <CenteredGrid item xs={12} lg={2} style={{ justifyContent: 'flex-end', padding: '10px 30px' }}>
           <LogoOutBox onClick={handleLogout}>
             <PersonOutlineIcon fontSize="large" />
-            <Typography style={{ marginTop: 5, color: 'white' }}>
+            <Typography style={{ color: 'white' }}>
               Sign Out
             </Typography>
           </LogoOutBox>
-        </Grid>
+        </CenteredGrid>
       )}
-    </>
+    </Grid>
   );
 };

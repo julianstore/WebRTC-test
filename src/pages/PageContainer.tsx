@@ -1,11 +1,17 @@
 import React, { useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+
 import { Header } from './Header';
 import AuthContext from '../contexts/AuthContext';
-import { useHistory } from 'react-router-dom';
 
 interface PageContainerProps {
   children: React.ReactNode;
 }
+
+const MainContainer = styled.div`
+  padding: 10px;
+`;
 
 export const PageContainer = (props: PageContainerProps) => {
   const { children } = props;
@@ -16,9 +22,9 @@ export const PageContainer = (props: PageContainerProps) => {
   }, [isAuthenticated, history]);
 
   return (
-    <>
+    <MainContainer>
       <Header></Header>
       {children}
-    </>
+    </MainContainer>
   );
 };
