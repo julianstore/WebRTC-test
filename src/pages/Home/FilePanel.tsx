@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useContext } from 'react';
 import AgoraRTC, { AudioSourceState } from 'agora-rtc-sdk-ng';
 import { FileDrop } from 'react-file-drop';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import styled from 'styled-components';
 import { Grid } from '@mui/material';
 import Button from '@mui/material/Button';
