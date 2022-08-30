@@ -21,7 +21,6 @@ import AddIcon from '@mui/icons-material/Add';
 import CircleIcon from '@mui/icons-material/Circle';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
-import AuthContext from '../../contexts/AuthContext';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
   _mpTrack,
@@ -109,8 +108,6 @@ function FilePanel(props: any) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [curAudio, setCurAudio] = useState<File>();
   const [position, setPosition] = useState(0);
-
-  const authContext = useContext(AuthContext);
 
   const dispatch = useAppDispatch();
   const mpTrack = useAppSelector(_mpTrack);
