@@ -143,10 +143,20 @@ function DevicePanel(props: any) {
               //     }
               //   }}
               fullWidth
+              tabIndex={5}
             >
               {deviceList.map((item, index) => {
                 return (
-                  <DeviceItem key={index} value={item.deviceId}>
+                  <DeviceItem
+                    sx={{
+                      '&:hover': {
+                        background: '#333 !important'
+                      },
+                      '&:focus': {
+                        background: '#333 !important'
+                      }
+                    }}
+                    key={index} value={item.deviceId}>
                     {item.label}
                   </DeviceItem>
                 );

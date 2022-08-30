@@ -99,7 +99,7 @@ export const Header = () => {
       </CenteredGrid>
       {authContext.isAuthenticated && (
         <CenteredGrid item xs={12} lg={2} style={{ justifyContent: 'flex-end', padding: '10px 30px' }}>
-          <LogoOutBox onClick={handleLogout}>
+          <LogoOutBox onClick={handleLogout} tabIndex={0}>
             <PersonOutlineIcon fontSize="large" />
             <Typography style={{ color: 'white' }}>
               Sign Out

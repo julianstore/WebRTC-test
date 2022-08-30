@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import { TextField } from '@mui/material';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import { makeStyles } from '@material-ui/core/styles';
 import { ToastContainer, toast } from 'react-toastify';
 
 import AuthContext from '../../contexts/AuthContext';
@@ -21,6 +22,14 @@ import {
 } from '../../store/slices/trackSlice';
 
 var intervalId: any = null;
+
+const useStyles = makeStyles({
+  textField: {
+      "& > div::after": {
+        border: "0 !important"
+      }
+  }
+});
 
 const MyTextField = styled(TextField)({
   background: 'rgba(72, 255, 245, 0.05) !important',
@@ -45,6 +54,7 @@ function Home() {
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
 
   const dispatch = useAppDispatch();
+  const classes = useStyles();
 
   const useClient = useAppSelector(_rtcClient);
   const mpTrack = useAppSelector(_mpTrack);
@@ -138,6 +148,7 @@ function Home() {
         >
           <Grid item xs={12} md={4} lg={3}>
             <MyTextField
+              className={classes.textField}
               label="App ID"
               type="text"
               name="app_id"
@@ -146,7 +157,7 @@ function Home() {
               InputProps={{
                 style: {
                   color: 'white',
-                  padding: '0 8px',
+                  padding: '5px 8px',
                 }
               }}
               InputLabelProps={{
@@ -156,14 +167,17 @@ function Home() {
                 }
               }}
               required
+              multiline
               fullWidth
               onChange={(e) => {
                 setAppID(e.target.value);
               }}
+              tabIndex={1}
             />
           </Grid>
           <Grid item xs={12} md={4} lg={3}>
             <MyTextField
+              className={classes.textField}
               label="Channel"
               type="text"
               name="channel"
@@ -172,7 +186,7 @@ function Home() {
               InputProps={{
                 style: {
                   color: 'white',
-                  padding: '0 8px',
+                  padding: '5px 8px',
                 }
               }}
               InputLabelProps={{
@@ -182,10 +196,12 @@ function Home() {
                 }
               }}
               required
+              multiline
               fullWidth
               onChange={(e) => {
                 setChannel(e.target.value);
               }}
+              tabIndex={2}
             />
           </Grid>
           <Grid item xs={12} md={4} lg={6} style={{ display: 'flex', alignItems: 'center' }}>
@@ -193,6 +209,7 @@ function Home() {
               variant="contained"
               onClick={handleJoin}
               disabled={isJoined}
+              tabIndex={3}
             >
               Join
             </MyButton>
@@ -202,6 +219,7 @@ function Home() {
               onClick={handleLeave}
               disabled={!isJoined}
               style={{ marginLeft: 10 }}
+              tabIndex={7}
             >
               Leave
             </MyButton>

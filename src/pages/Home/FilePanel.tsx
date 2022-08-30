@@ -112,15 +112,11 @@ function FilePanel(props: any) {
 
   const authContext = useContext(AuthContext);
 
-  console.log('authContext', authContext);
-
   const dispatch = useAppDispatch();
   const mpTrack = useAppSelector(_mpTrack);
   const audioList = useAppSelector(_audioList);
 
   useEffect(() => {
-    console.log('MpTrack is updated', mpTrack);
-
     handlePlay();
     mpTrack?.on('source-state-change', (currentState: AudioSourceState) => {
       if (currentState === 'playing') {
@@ -150,15 +146,22 @@ function FilePanel(props: any) {
       source: newAudio
     };
     const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
+    (fileInput.current as any).value = null;
     setCurAudio(newAudio);
     dispatch(setMPTrack(tempMPTrack));
   };
 
   const removeAudioHandler = async (index: number, isSelected: boolean) => {
     if (useClient?.connectionState === 'CONNECTED' && mpTrack != null && isPlaying && isSelected) {
+      (fileInput.current as any).value = null;
       mpTrack.stopProcessAudioBuffer();
       dispatch(removeAudio(index));
-      await handleNext();
+      if (audioList.length > 1) {
+        await handleNext();
+      } else {
+        dispatch(setMPTrack(null));
+        setCurAudio(undefined);
+      }
     } else {
       dispatch(removeAudio(index));
     }
@@ -195,7 +198,6 @@ function FilePanel(props: any) {
   };
 
   const handlePlay = async () => {
-    console.log(useClient?.connectionState);
     clearInterval(intervalId);
     if (useClient?.connectionState !== 'CONNECTED') {
       toast.warning('RTC Client is not connected, please join!');
@@ -221,11 +223,12 @@ function FilePanel(props: any) {
   };
 
   const handlePause = async () => {
-    console.log(useClient?.connectionState);
-    setPaused(true);
-    setIsPlaying(false);
-    mpTrack.pauseProcessAudioBuffer();
-    clearInterval(intervalId);
+    if (curAudio) {
+      setPaused(true);
+      setIsPlaying(false);
+      mpTrack.pauseProcessAudioBuffer();
+      clearInterval(intervalId);
+    }
   };
 
   //   const handleStop = async () => {
@@ -275,6 +278,8 @@ function FilePanel(props: any) {
                 variant="contained"
                 onClick={() => fileInput?.current?.click()}
                 fullWidth
+                disabled={useClient?.connectionState !== 'CONNECTED'}
+                tabIndex={6}
               >
                 <Typography>Track Name</Typography>
                 <AddIcon />
@@ -306,7 +311,7 @@ function FilePanel(props: any) {
                             }}
                           />
 
-                          <ListItemIcon 
+                          <ListItemIcon
                             style={{ minWidth: 22 }}
                             onClick={async () => {
                               removeAudioHandler(index, item === curAudio);
@@ -412,11 +417,6 @@ function FilePanel(props: any) {
           </Grid>
         </Grid>
       </Grid>
-      <ToastContainer
-        position="top-right"
-        newestOnTop
-        style={{ marginTop: 100, zIndex: '99999 !important' }}
-      />
     </FileDrop>
   );
 }

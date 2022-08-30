@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useRef } from 'react';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import { ToastContainer, toast } from 'react-toastify';
 import { useHistory } from 'react-router-dom';
@@ -57,6 +57,7 @@ const SignIn = () => {
   const [userLogin, setUserLogin] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const passwordInputRef = useRef(null);
 
   const handleSignIn = async (userLogin: string, password: string) => {
     if (!userLogin || !password) {
@@ -95,9 +96,6 @@ const SignIn = () => {
               '& .MuiFormLabel-root.Mui-focused': {
                 color: '#48FFF5'
               },
-              'input:autofill': {
-                background: 'red !important'
-              },
               'input:-webkit-autofill': {
                 textFillColor: 'white',
                 boxShadow: '0 0 0px 1000px #000 inset'
@@ -111,6 +109,12 @@ const SignIn = () => {
             onChange={(e) => {
               setUserLogin(e.target.value);
             }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                (passwordInputRef.current as any).focus();
+              }
+            }}
             inputProps={{
               style: {
                 color: 'white',
@@ -122,6 +126,7 @@ const SignIn = () => {
         </Grid>
         <Grid item xs={12} style={{ margin: '10px auto' }}>
           <Input
+            inputRef={passwordInputRef}
             sx={{
               '& .MuiFormLabel-root': {
                 color: '#6A6F79'
@@ -140,6 +145,12 @@ const SignIn = () => {
             variant="standard"
             onChange={(e) => {
               setPassword(e.target.value);
+            }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSignIn(userLogin, password);
+              }
             }}
             inputProps={{
               style: {
