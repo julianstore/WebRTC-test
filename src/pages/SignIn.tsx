@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { Grid, Typography, Button, TextField } from '@mui/material';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import { makeStyles } from '@material-ui/core/styles';
 
 import AuthContext from '../contexts/AuthContext';
 import * as api from '../store/api-client';
@@ -15,7 +16,19 @@ if (typeof window !== 'undefined') {
   injectStyle();
 }
 
+const useStyles = makeStyles({
+  textField: {
+      "& > div::after": {
+        borderBottom: '1.5px solid #48FFF5 !important'
+      }
+  }
+});
+
 const Input = styled(TextField)({
+  fontFamily: 'Poppins !important',
+  fontWeight: '400 !important',
+  fontSize: '16px !important',
+  lineHeight: '24px !important',
   borderBottom: '1.5px solid #6A6F79 !important',
   '&:focus': {
     borderBottom: '1.5px solid #48FFF5 !important'
@@ -23,31 +36,39 @@ const Input = styled(TextField)({
 });
 
 const Description = styled(Typography)({
-  color: 'white !important',
-  fontWeight: 400,
-  fontSize: 16
+  color: '#C8DCFF !important',
+  fontFamily: 'Poppins !important',
+  fontWeight: '400 !important',
+  fontSize: '16px !important',
+  lineHeight: '16.64px !important',
 });
 
 const LoginBtn = styled(Button)({
-  textTransform: 'none',
   background: '#48FFF5 !important',
-  boxShadow: '0px 0px 34px 2px rgba(72, 255, 245, 0.54)',
+  boxShadow: '0px 0px 34px 2px rgba(72, 255, 245, 0.54) !important',
   borderRadius: '42px !important',
   color: 'black !important'
 });
 
 const LoginBtnCaption = styled(Typography)({
-  fontWeight: 700,
-  fontSize: '18px'
+  fontFamily: 'Poppins !important',
+  fontWeight: '700 !important',
+  fontSize: '18px !important',
+  lineHeight: '27px !important',
+  letterSpacing: '-0.02em !important',
+  padding: '5px !important',
 });
 
 const PanelWrapper = styled(Grid)`
-  margin-top: 100px !important;
-  margin-left: 200px !important;
+  margin-top: 67px !important;
+  padding-left: 14px;
+  width: 300px !important;
   @media only screen and (max-width: 900px) {
     margin-top: 50px !important;
-    margin-left: 0px !important;
-    padding: 0 20px;
+    padding: 0;
+  }
+  @media only screen and (max-width: 600px) {
+    width: 100% !important;
   }
 `;
 
@@ -58,6 +79,7 @@ const SignIn = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const passwordInputRef = useRef(null);
+  const classes = useStyles();
 
   const handleSignIn = async (userLogin: string, password: string) => {
     if (!userLogin || !password) {
@@ -67,7 +89,7 @@ const SignIn = () => {
       await api.signIn(userLogin, password).then((res) => {
         if (res.status === 200) {
           toast.success('Success!!!');
-          localStorage.setItem('wedream-auth-token', res.data.token);
+          localStorage.setItem('wedream-auth-token', res?.data?.authToken?.accessToken || '');
           authContext.signin(res.data, () => {
             history.push('/home');
           });
@@ -80,14 +102,14 @@ const SignIn = () => {
   };
   return (
     <PageContainer>
-      <PanelWrapper container item xs={12} md={4} lg={3}>
+      <PanelWrapper container>
         <Grid item xs={12}>
           <Description>
             Sign in with your WeDream ID. If you don’t have one yet, sign up for
             one on the app first.
           </Description>
         </Grid>
-        <Grid item xs={12} style={{ margin: '10px auto' }}>
+        <Grid item xs={12} style={{ marginTop: '45px' }}>
           <Input
             sx={{
               '& .MuiFormLabel-root': {
@@ -98,11 +120,13 @@ const SignIn = () => {
               },
               'input:-webkit-autofill': {
                 textFillColor: 'white',
-                boxShadow: '0 0 0px 1000px #000 inset'
+                boxShadow: '0 0 0px 1000px #000 inset',
               },
             }}
+            className={classes.textField}
             id="standard-read-only-input"
-            label="E-mail"
+            label=""
+            placeholder="E-mail"
             type="text"
             value={userLogin}
             variant="standard"
@@ -118,13 +142,12 @@ const SignIn = () => {
             inputProps={{
               style: {
                 color: 'white',
-                background: 'black'
               }
             }}
             fullWidth
           />
         </Grid>
-        <Grid item xs={12} style={{ margin: '10px auto' }}>
+        <Grid item xs={12} style={{ marginTop: '30px' }}>
           <Input
             inputRef={passwordInputRef}
             sx={{
@@ -139,8 +162,10 @@ const SignIn = () => {
                 boxShadow: '0 0 0px 1000px #000 inset'
               },
             }}
-            label="Password"
+            className={classes.textField}
+            label=""
             type="password"
+            placeholder="Password"
             value={password}
             variant="standard"
             onChange={(e) => {
@@ -155,13 +180,12 @@ const SignIn = () => {
             inputProps={{
               style: {
                 color: 'white',
-                background: 'black'
               }
             }}
             fullWidth
           />
         </Grid>
-        <Grid item xs={12} style={{ marginTop: '30px', textAlign: 'center' }}>
+        <Grid item xs={12} style={{ marginTop: '60px', textAlign: 'center' }}>
           <LoginBtn
             variant="contained"
             onClick={() => {
@@ -169,7 +193,7 @@ const SignIn = () => {
             }}
             fullWidth
           >
-            <LoginBtnCaption>Login</LoginBtnCaption>
+            <LoginBtnCaption textTransform={'capitalize'}>Login</LoginBtnCaption>
           </LoginBtn>
         </Grid>
       </PanelWrapper>

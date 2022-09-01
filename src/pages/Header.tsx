@@ -19,9 +19,14 @@ const LogoBox = styled(Box)({
   fontFamily: 'Poppins',
   fontWeight: 700,
   fontSize: 64,
+  letterSpacing: '-0.02em',
+  lineHeight: '66.56px',
   background: 'linear-gradient(296.93deg, #47FFF5 24%, #FF1F70 65.95%)',
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
+  height: '66px',
+  width: '348px',
+  marginRight: '10px'
 });
 
 const LogoOutBox = styled(Box)({
@@ -33,16 +38,31 @@ const LogoOutBox = styled(Box)({
 });
 
 const Title = styled(Typography)({
-  color: '#C8DCFF',
-  fontWeight: 500,
+  fontFamily: 'Poppins !important',
+  fontWeight: '500 !important',
   fontSize: '36px !important',
-  marginTop: '25px !important'
+  lineHeight: '37.44px !important',
+  color: '#C8DCFF',
+  height: '66px',
+  display: 'table-cell',
+  verticalAlign: 'bottom',
+  textAlign: 'center',
 });
 
-const CenteredGrid = styled(Grid)({
+const LogoGrid = styled(Grid)`
+  display: flex;
+  justifyContent: flex-start;
+  alignItems: flex-end;
+  @media only screen and (max-width: 900px) {
+    display: block;
+  }
+`;
+
+const SignOutGrid = styled(Grid)({
   display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center'
+  justifyContent: 'flex-end',
+  alignItems: 'flex-end',
+  padding: '10px 30px',
 })
 
 export const Header = () => {
@@ -68,7 +88,7 @@ export const Header = () => {
   const handleLogout = async () => {
     if (rtcClient.connectionState === 'CONNECTED') {
       await rtcClient.unpublish(mpTrack ? [mpTrack] : []).then(() => {
-        mpTrack.stopProcessAudioBuffer();
+        mpTrack?.stopProcessAudioBuffer();
       });
 
       await mpTrack?.stop();
@@ -88,24 +108,41 @@ export const Header = () => {
   };
 
   return (
-    <Grid container style={{ marginTop: 30 }}>
-      <CenteredGrid item xs={12} md={5} lg={4}>
+    <Grid container>
+      <LogoGrid item xs={12} lg={10}>
         <LogoBox>WeDream</LogoBox>
-      </CenteredGrid>
-      <CenteredGrid item xs={12} md={7} lg={6}>
         <Box>
-          <Title style={{ textAlign: 'center', fontFamily: 'Poppins'}}>Audio Streaming Portal</Title>
+          <Title>Audio Streaming Portal</Title>
         </Box>
-      </CenteredGrid>
+      </LogoGrid>
+
+      {/* <LogoGrid item xs={12} md={5} lg={4}>
+        <LogoBox>WeDream</LogoBox>
+      </LogoGrid>
+      <LogoGrid item xs={12} md={7} lg={6}>
+        <Box>
+          <Title>Audio Streaming Portal</Title>
+        </Box>
+      </LogoGrid> */}
       {authContext.isAuthenticated && (
-        <CenteredGrid item xs={12} lg={2} style={{ justifyContent: 'flex-end', padding: '10px 30px' }}>
-          <LogoOutBox onClick={handleLogout} tabIndex={0}>
+        <SignOutGrid item xs={12} lg={2}>
+          <LogoOutBox 
+            onClick={handleLogout}
+            onKeyPress={(e) => {
+              console.log('e.key = ', e.key)
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleLogout();
+              }
+            }}
+            tabIndex={0}
+            >
             <PersonOutlineIcon fontSize="large" />
             <Typography style={{ color: 'white' }}>
               Sign Out
             </Typography>
           </LogoOutBox>
-        </CenteredGrid>
+        </SignOutGrid>
       )}
     </Grid>
   );

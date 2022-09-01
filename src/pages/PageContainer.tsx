@@ -10,7 +10,7 @@ interface PageContainerProps {
 }
 
 const MainContainer = styled.div`
-  padding: 10px;
+  padding: 45px 57px;
 `;
 
 export const PageContainer = (props: PageContainerProps) => {

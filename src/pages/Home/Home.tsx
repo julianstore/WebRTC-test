@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import styled from 'styled-components';
 import { IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
-import { Container, Grid } from '@mui/material';
+import { Grid } from '@mui/material';
 import Button from '@mui/material/Button';
 import { TextField } from '@mui/material';
 import Backdrop from '@mui/material/Backdrop';
@@ -13,6 +13,7 @@ import AuthContext from '../../contexts/AuthContext';
 import DevicePanel from './DevicePanel';
 import FilePanel from './FilePanel';
 import { PageContainer } from '../PageContainer';
+import * as api from '../../store/api-client';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
   _mpTrack,
@@ -61,6 +62,10 @@ function Home() {
   const audioTrack = useAppSelector(_audioTrack);
 
   useEffect(() => {
+    getDreamUser();
+  }, []);
+
+  useEffect(() => {
     if (useClient?.connectionState === 'CONNECTED') setIsJoined(true);
 
     useClient?.on('user-published', async (user: any, mediaType: any) => {
@@ -100,6 +105,18 @@ function Home() {
     // });
   }, [users, useClient]);
 
+  const getDreamUser = async () => {
+    setLoading(true);
+    await api.getDreamUser().then((res) => {
+      if (res.status === 200) {
+        console.log('response = ', res.data);
+      } else {
+        toast.warning(res.data.ERR_CODE);
+      }
+    });
+    setLoading(false);
+  }
+
   const handleLeave = async () => {
     setLoading(true);
     await audioTrack?.stop();
@@ -137,101 +154,103 @@ function Home() {
 
   return (
     <PageContainer>
-      <Container maxWidth="lg">
-        <Grid
-          container
-          direction="row"
-          justifyContent="center"
-          alignItems="stretch"
-          style={{ marginTop: 30, marginBottom: 80 }}
-          spacing={5}
-        >
-          <Grid item xs={12} md={4} lg={3}>
-            <MyTextField
-              className={classes.textField}
-              label="App ID"
-              type="text"
-              name="app_id"
-              value={appId}
-              variant="standard"
-              InputProps={{
-                style: {
-                  color: 'white',
-                  padding: '5px 8px',
-                }
-              }}
-              InputLabelProps={{
-                style: {
-                  color: '#48FFF5',
-                  padding: '5px 10px'
-                }
-              }}
-              required
-              multiline
-              fullWidth
-              onChange={(e) => {
-                setAppID(e.target.value);
-              }}
-              tabIndex={1}
-            />
-          </Grid>
-          <Grid item xs={12} md={4} lg={3}>
-            <MyTextField
-              className={classes.textField}
-              label="Channel"
-              type="text"
-              name="channel"
-              value={channel}
-              variant="standard"
-              InputProps={{
-                style: {
-                  color: 'white',
-                  padding: '5px 8px',
-                }
-              }}
-              InputLabelProps={{
-                style: {
-                  color: '#48FFF5',
-                  padding: '5px 10px'
-                }
-              }}
-              required
-              multiline
-              fullWidth
-              onChange={(e) => {
-                setChannel(e.target.value);
-              }}
-              tabIndex={2}
-            />
-          </Grid>
-          <Grid item xs={12} md={4} lg={6} style={{ display: 'flex', alignItems: 'center' }}>
-            <MyButton
-              variant="contained"
-              onClick={handleJoin}
-              disabled={isJoined}
-              tabIndex={3}
-            >
-              Join
-            </MyButton>
-            <MyButton
-              variant="contained"
-              color="info"
-              onClick={handleLeave}
-              disabled={!isJoined}
-              style={{ marginLeft: 10 }}
-              tabIndex={7}
-            >
-              Leave
-            </MyButton>
-          </Grid>
-          <Grid item xs={12} md={6} lg={5}>
-            <DevicePanel useClient={useClient} isJoined={isJoined} />
-          </Grid>
-          <Grid item xs={12} md={6} lg={7}>
-            <FilePanel useClient={useClient} isJoined={isJoined} />
+      <Grid container>
+        <Grid md={11} lg={9}>
+          <Grid
+            container
+            direction="row"
+            justifyContent="center"
+            alignItems="stretch"
+            style={{ marginTop: 30, marginBottom: 80 }}
+            spacing={5}
+          >
+            <Grid item xs={12} md={4} lg={3}>
+              <MyTextField
+                className={classes.textField}
+                label="App ID"
+                type="text"
+                name="app_id"
+                value={appId}
+                variant="standard"
+                InputProps={{
+                  style: {
+                    color: 'white',
+                    padding: '5px 8px',
+                  }
+                }}
+                InputLabelProps={{
+                  style: {
+                    color: '#48FFF5',
+                    padding: '5px 10px'
+                  }
+                }}
+                required
+                multiline
+                fullWidth
+                onChange={(e) => {
+                  setAppID(e.target.value);
+                }}
+                tabIndex={1}
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={3}>
+              <MyTextField
+                className={classes.textField}
+                label="Channel"
+                type="text"
+                name="channel"
+                value={channel}
+                variant="standard"
+                InputProps={{
+                  style: {
+                    color: 'white',
+                    padding: '5px 8px',
+                  }
+                }}
+                InputLabelProps={{
+                  style: {
+                    color: '#48FFF5',
+                    padding: '5px 10px'
+                  }
+                }}
+                required
+                multiline
+                fullWidth
+                onChange={(e) => {
+                  setChannel(e.target.value);
+                }}
+                tabIndex={2}
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={6} style={{ display: 'flex', alignItems: 'center' }}>
+              <MyButton
+                variant="contained"
+                onClick={handleJoin}
+                disabled={isJoined}
+                tabIndex={3}
+              >
+                Join
+              </MyButton>
+              <MyButton
+                variant="contained"
+                color="info"
+                onClick={handleLeave}
+                disabled={!isJoined}
+                style={{ marginLeft: 10 }}
+                tabIndex={7}
+              >
+                Leave
+              </MyButton>
+            </Grid>
+            <Grid item xs={12} md={6} lg={5}>
+              <DevicePanel useClient={useClient} isJoined={isJoined} />
+            </Grid>
+            <Grid item xs={12} md={6} lg={7}>
+              <FilePanel useClient={useClient} isJoined={isJoined} />
+            </Grid>
           </Grid>
         </Grid>
-      </Container>
+      </Grid>
       <ToastContainer
         position="top-right"
         newestOnTop

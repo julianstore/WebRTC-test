@@ -10,6 +10,7 @@ import Avatar from '@mui/material/Avatar';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MicOffTwoToneIcon from '@mui/icons-material/MicOffTwoTone';
 import MicTwoToneIcon from '@mui/icons-material/MicTwoTone';
+import { toast } from 'react-toastify';
 
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { _audioTrack, setAudioTrack } from '../../store/slices/trackSlice';
@@ -41,18 +42,17 @@ const MicOffButton = styled(Avatar)({
 });
 
 const MicDescription = styled(Typography)({
+  fontFamily: 'Poppins !important',
+  fontWeight: '400 !important',
+  fontSize: '10px !important',
+  lineHeight: '10.4px !important',
+  color: '#C8DCFF !important',
   marginTop: '20px !important',
-  color: '#C8DCFF',
-  fontStyle: 'normal',
-  fontWeight: 400,
-  fontSize: 15
 });
 
 const DeviceWrapper = styled(Grid)`
-  padding-right: 50px;
-  border-right: 2px solid rgba(72, 255, 245, 0.25);
+  padding-right: 30px;
   @media only screen and (max-width: 900px) {
-    border: 0px;
     padding-right: 0px;
   }
 `;
@@ -74,13 +74,11 @@ function DevicePanel(props: any) {
       })
       .catch((e) => {
         console.log('get devices error!', e);
-        alert('Can not find out devices');
+        toast.error('Can not find out devices');
       });
   }, []);
 
   const handleMicOn = async () => {
-    console.log('useClient?.connectionState', useClient?.connectionState);
-
     const configA = {
       microphoneId: device
     };
@@ -100,9 +98,16 @@ function DevicePanel(props: any) {
     });
   };
 
+  const resetMic = async () => {
+    await useClient?.unpublish([audioTrack]);
+    handleMicOn();
+  }
+
   const handleDeviceChange = (e: any) => {
     setDevice(e.target.value);
-    handleMicOff();
+    if (micOn) {
+      resetMic();
+    }
   };
 
   return (
@@ -117,15 +122,18 @@ function DevicePanel(props: any) {
         <Grid item xs={12}>
           <Typography
             color={'#C8DCFF'}
-            style={{ fontSize: 32, fontWeight: 500 }}
+            style={{ fontSize: 32, fontWeight: 500, fontFamily: 'Poppins', lineHeight: '33.28px' }}
           >
             Input
           </Typography>
-          <Typography color={'#C8DCFF'}>
+          <Typography 
+            color={'#C8DCFF'}
+            style={{ fontSize: 16, fontFamily: 'Poppins', lineHeight: '16.64px' }}
+            >
             Select a system audio source to stream
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} style={{ marginTop: '20px' }}>
           <FormControl fullWidth>
             <DeviceList
               value={device}

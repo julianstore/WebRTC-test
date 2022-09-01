@@ -33,8 +33,10 @@ import {
 var intervalId: any = null;
 
 const TinyText = styled(Typography)({
-  fontSize: '0.75rem',
-  fontWeight: 500,
+  fontFamily: 'Poppins !important',
+  fontWeight: '500 !important',
+  fontSize: '16px !important',
+  lineHeight: '16.64px !important',
   letterSpacing: 0.2,
   color: '#48FFF5'
 });
@@ -101,6 +103,13 @@ const TrackSlider = styled(Slider)({
   }
 });
 
+const FileListWrapper = styled(Grid)`
+  border-left: 2px solid rgba(72, 255, 245, 0.25);
+  @media only screen and (max-width: 900px) {
+    border: 0px;
+  }
+`;
+
 function FilePanel(props: any) {
   const { useClient } = props;
   const fileInput = useRef<HTMLInputElement>(null);
@@ -149,7 +158,7 @@ function FilePanel(props: any) {
   };
 
   const removeAudioHandler = async (index: number, isSelected: boolean) => {
-    if (useClient?.connectionState === 'CONNECTED' && mpTrack != null && isPlaying && isSelected) {
+    if (useClient?.connectionState === 'CONNECTED' && mpTrack != null && isSelected) {
       (fileInput.current as any).value = null;
       mpTrack.stopProcessAudioBuffer();
       dispatch(removeAudio(index));
@@ -249,7 +258,7 @@ function FilePanel(props: any) {
     <FileDrop
       onDrop={(event) => fileUpload(event)}
     >
-      <Grid
+      <FileListWrapper
         container
         direction="row"
         justifyContent="center"
@@ -260,15 +269,18 @@ function FilePanel(props: any) {
         <Grid item xs={12}>
           <Typography
             color={'#C8DCFF'}
-            style={{ fontSize: 32, fontWeight: 500 }}
+            style={{ fontSize: 32, fontWeight: 500, fontFamily: 'Poppins', lineHeight: '33.28px' }}
           >
             MP3 playlist
           </Typography>
-          <Typography color={'#C8DCFF'}>
+          <Typography
+            color={'#C8DCFF'}
+            style={{ fontSize: 16, fontWeight: 400, fontFamily: 'Poppins', lineHeight: '16.64px' }}
+          >
             Drag and drop or hit plus to add
           </Typography>
         </Grid>
-        <Grid item xs={12} container>
+        <Grid item xs={12} container style={{ marginTop: '20px'}}>
           <Grid item xs={12} md={8} container>
             <Grid item xs={12}>
               <AddBtn
@@ -278,7 +290,7 @@ function FilePanel(props: any) {
                 disabled={useClient?.connectionState !== 'CONNECTED'}
                 tabIndex={6}
               >
-                <Typography>Track Name</Typography>
+                <Typography style={{ fontSize: 16, fontWeight: 500, fontFamily: 'Poppins', lineHeight: '16.64px' }}>Track Name</Typography>
                 <AddIcon />
               </AddBtn>
               <input
@@ -302,7 +314,7 @@ function FilePanel(props: any) {
                             </ListItemIcon>
                           )}
                           <ListItemText
-                            primary={<TrackName>{item?.name}</TrackName>}
+                            primary={<TrackName color={'#C8DCFF'} style={{ fontSize: 16, fontWeight: 300, fontFamily: 'Poppins', lineHeight: '16.64px' }}>{item?.name}</TrackName>}
                             onClick={async () => {
                               audioChange(item);
                             }}
@@ -413,7 +425,7 @@ function FilePanel(props: any) {
             />
           </Grid>
         </Grid>
-      </Grid>
+      </FileListWrapper>
     </FileDrop>
   );
 }

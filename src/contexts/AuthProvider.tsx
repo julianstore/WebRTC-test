@@ -23,7 +23,7 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
   const signout = (callback: VoidFunction) => {
     setAccount(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('wedream-rtc-auth-token');
+    localStorage.removeItem('wedream-auth-token');
     localStorage.removeItem('curWeDreamRTCAccount');
     callback();
   };
