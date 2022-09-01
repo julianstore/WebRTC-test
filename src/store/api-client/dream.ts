@@ -1,5 +1,5 @@
 import axios from 'axios';
-import axiosInstance from '.';
+// import axiosInstance from '.';
 
 // For Authorized request
 const getAxiosInstance = () => {
