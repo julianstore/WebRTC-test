@@ -314,7 +314,22 @@ function FilePanel(props: any) {
                             </ListItemIcon>
                           )}
                           <ListItemText
-                            primary={<TrackName color={'#C8DCFF'} style={{ fontSize: 16, fontWeight: 300, fontFamily: 'Poppins', lineHeight: '16.64px' }}>{item?.name}</TrackName>}
+                            primary={<TrackName
+                              color={'#C8DCFF'}
+                              style={{
+                                fontSize: 16,
+                                fontWeight: 300,
+                                fontFamily: 'Poppins',
+                                lineHeight: '16.64px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                width: '100%'
+                              }}
+                              >
+                                {item?.name}
+                                </TrackName>
+                                }
                             onClick={async () => {
                               audioChange(item);
                             }}
