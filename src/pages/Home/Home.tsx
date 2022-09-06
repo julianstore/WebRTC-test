@@ -72,10 +72,6 @@ function Home() {
   const audioTrack = useAppSelector(_audioTrack);
 
   useEffect(() => {
-    handleTimeout();
-  }, []);
-
-  useEffect(() => {
     if (useClient?.connectionState === 'CONNECTED') setIsJoined(true);
 
     useClient?.on('user-published', async (user: any, mediaType: any) => {
@@ -150,7 +146,7 @@ function Home() {
     }
   };
 
-  const handleTimeout = async () => {
+  const handleRefresh = async (isInterval: boolean) => {
     setLoading(true);
     try {
       if (isJoined) {
@@ -187,59 +183,24 @@ function Home() {
         } else {
           setLoading(false);
           toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
-          setTimeout(() => { handleTimeout() }, 15000);
+          if (isInterval) {
+            setTimeout(() => { handleRefresh(isInterval) }, 15000);
+          }
         }
       });
     } catch(ex) {
       setLoading(false);
       toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
-      setTimeout(() => { handleTimeout() }, 15000);
+      if (isInterval) {
+        setTimeout(() => { handleRefresh(isInterval) }, 15000);
+      }
     }
   }
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      if (isJoined) {
-        await audioTrack?.stop();
-        await audioTrack?.close();
-        await mpTrack?.stop();
-        await mpTrack?.close();
-        await useClient?.leave().then(() => {
-          dispatch(setAudioList([]));
-          setIsJoined(false);
-          clearInterval(intervalId);
-        });
-      }
-      await api.getDreamUser().then(async (res) => {
-        if (res.status === 200) {
-          const tempChannel = res.data.dreamChannel;
-          setChannel(tempChannel);
-          try {
-            await useClient?.join(
-              appId,
-              tempChannel,
-              null,
-              'boomboxU$3r-' + authContext.account?.authToken.userId
-            );
-            setIsJoined(true);
-            setLoading(false);
-          } catch (e) {
-            setLoading(false);
-            toast.error('Can not join, please check if you disconnected from WeDream App');
-            console.error(e);
-          }
-
-        } else {
-          setLoading(false);
-          toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
-        }
-      });
-    } catch(ex) {
-      setLoading(false);
-      toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
-    }
-  };
+  useEffect(() => {
+    handleRefresh(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <PageContainer>
@@ -332,7 +293,7 @@ function Home() {
             <Grid item xs={12} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0' }}>
               <MyButton
                   variant="contained"
-                  onClick={handleRefresh}
+                  onClick={() => handleRefresh(false)}
                   tabIndex={3}
                 >
                   <Refresh/>
