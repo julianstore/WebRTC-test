@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import AgoraRTC, { AudioSourceState } from 'agora-rtc-sdk-ng';
 import { FileDrop } from 'react-file-drop';
 import { toast } from 'react-toastify';
@@ -24,6 +24,8 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
   _mpTrack,
+  _rtcClient,
+  setRTCClient,
   setMPTrack,
   addAudio,
   removeAudio,
@@ -110,8 +112,7 @@ const FileListWrapper = styled(Grid)`
   }
 `;
 
-function FilePanel(props: any) {
-  const { useClient } = props;
+function FilePanel() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [paused, setPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -121,9 +122,22 @@ function FilePanel(props: any) {
   const dispatch = useAppDispatch();
   const mpTrack = useAppSelector(_mpTrack);
   const audioList = useAppSelector(_audioList);
+  const rtcClient = useAppSelector(_rtcClient);
+
+  const isConnected = useCallback(() => {
+    return rtcClient?.connectionState === 'CONNECTED'
+  }, [rtcClient?.connectionState]);
+
+  const isDisConnected = useCallback(() => {
+    return rtcClient?.connectionState === 'DISCONNECTED'
+  }, [rtcClient?.connectionState]);
+
+  const updateRTCClient = useCallback((_rtcClient: any) => {
+    dispatch(setRTCClient(_rtcClient));
+  }, [dispatch]);
 
   useEffect(() => {
-    if (useClient?.connectionState === 'CONNECTED') {
+    if (isConnected()) {
       handlePlay();
     }
     mpTrack?.on('source-state-change', (currentState: AudioSourceState) => {
@@ -160,7 +174,7 @@ function FilePanel(props: any) {
   };
 
   const removeAudioHandler = async (index: number, isSelected: boolean) => {
-    if (useClient?.connectionState === 'CONNECTED' && mpTrack != null && isSelected) {
+    if (isConnected() && mpTrack != null && isSelected) {
       (fileInput.current as any).value = null;
       mpTrack.stopProcessAudioBuffer();
       dispatch(removeAudio(index));
@@ -207,10 +221,10 @@ function FilePanel(props: any) {
 
   const handlePlay = async () => {
     clearInterval(intervalId);
-    if (useClient?.connectionState !== 'CONNECTED') {
+    if (isDisConnected()) {
       toast.warning('RTC Client is not connected, please join!');
     }
-    if (useClient?.connectionState === 'CONNECTED' && mpTrack != null) {
+    if (isConnected() && mpTrack != null) {
       intervalId = setInterval(() => {
         setPosition(mpTrack?.getCurrentTime());
       }, 1000);
@@ -221,8 +235,9 @@ function FilePanel(props: any) {
         if (isPlaying) {
             mpTrack.stopProcessAudioBuffer();
         } else {
-          await useClient?.publish([mpTrack]).then(() => {
+          await rtcClient?.publish([mpTrack]).then(() => {
             mpTrack.startProcessAudioBuffer();
+            updateRTCClient(rtcClient);
             // mpTrack.play();
           });
         }
@@ -240,10 +255,10 @@ function FilePanel(props: any) {
   };
 
   //   const handleStop = async () => {
-  //     if (useClient?.connectionState === 'CONNECTED') {
-  //       await useClient?.unpublish([mpTrack]).then(() => {
+  //     if (rtcClient?.connectionState === 'CONNECTED') {
+  //       await rtcClient?.unpublish([mpTrack]).then(() => {
   //         mpTrack.stopProcessAudioBuffer();
-
+  //          updateRTCClient(rtcClient);
   //       });
   //     }
   //   };
@@ -289,7 +304,7 @@ function FilePanel(props: any) {
                 variant="contained"
                 onClick={() => fileInput?.current?.click()}
                 fullWidth
-                disabled={useClient?.connectionState !== 'CONNECTED'}
+                disabled={isDisConnected()}
                 tabIndex={6}
               >
                 <Typography style={{ fontSize: 16, fontWeight: 500, fontFamily: 'Poppins', lineHeight: '16.64px' }}>Track Name</Typography>

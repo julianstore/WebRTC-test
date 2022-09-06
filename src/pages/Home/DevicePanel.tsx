@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import styled from 'styled-components';
+import { toast } from 'react-toastify';
 import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -10,10 +11,9 @@ import Avatar from '@mui/material/Avatar';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MicOffTwoToneIcon from '@mui/icons-material/MicOffTwoTone';
 import MicTwoToneIcon from '@mui/icons-material/MicTwoTone';
-import { toast } from 'react-toastify';
 
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
-import { _audioTrack, setAudioTrack } from '../../store/slices/trackSlice';
+import { _audioTrack, _rtcClient, setAudioTrack, setRTCClient } from '../../store/slices/trackSlice';
 
 const DeviceList = styled(Select)({
   background: 'rgba(72, 255, 245, 0.05) !important',
@@ -57,14 +57,22 @@ const DeviceWrapper = styled(Grid)`
   }
 `;
 
-function DevicePanel(props: any) {
-  const { useClient, isJoined } = props;
+function DevicePanel() {
   const [deviceList, setDeviceList] = useState<MediaDeviceInfo[]>([]);
   const [device, setDevice] = useState('');
   const [micOn, setMicOn] = useState(false);
 
   const dispatch = useAppDispatch();
   const audioTrack = useAppSelector(_audioTrack);
+  const rtcClient = useAppSelector(_rtcClient);
+
+  const isConnected = useCallback(() => {
+    return rtcClient?.connectionState === 'CONNECTED'
+  }, [rtcClient?.connectionState]);
+
+  const updateRTCClient = useCallback((_rtcClient: any) => {
+    dispatch(setRTCClient(_rtcClient));
+  }, [dispatch]);
 
   useEffect(() => {
     AgoraRTC.getMicrophones()
@@ -83,23 +91,26 @@ function DevicePanel(props: any) {
       microphoneId: device
     };
 
-    if (useClient?.connectionState === 'CONNECTED') {
+    if (isConnected()) {
       const tempTrack: any = await AgoraRTC.createMicrophoneAudioTrack(configA);
       dispatch(setAudioTrack(tempTrack));
-      await useClient?.publish([tempTrack]).then(() => {
+      await rtcClient?.publish([tempTrack]).then(() => {
         setMicOn(true);
+        updateRTCClient(rtcClient);
       });
     }
   };
 
   const handleMicOff = async () => {
-    await useClient?.unpublish([audioTrack]).then(() => {
+    await rtcClient?.unpublish([audioTrack]).then(() => {
       setMicOn(false);
+      updateRTCClient(rtcClient);
     });
   };
 
   const resetMic = async () => {
-    await useClient?.unpublish([audioTrack]);
+    await rtcClient?.unpublish([audioTrack]);
+    updateRTCClient(rtcClient);
     handleMicOn();
   }
 
@@ -172,7 +183,7 @@ function DevicePanel(props: any) {
             </DeviceList>
           </FormControl>
         </Grid>
-        {isJoined && !micOn && device && (
+        {isConnected() && !micOn && device && (
           <Grid
             item
             xs={12}
@@ -191,7 +202,7 @@ function DevicePanel(props: any) {
             </MicDescription>
           </Grid>
         )}
-        {isJoined && micOn && device && (
+        {isConnected() && micOn && device && (
           <Grid
             item
             xs={12}

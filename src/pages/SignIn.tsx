@@ -80,24 +80,25 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const passwordInputRef = useRef(null);
   const classes = useStyles();
+  const loginSourceWebStream  = 2; // source value for web stream portal
 
   const handleSignIn = async (userLogin: string, password: string) => {
     if (!userLogin || !password) {
       toast.warning("You are missing email ID or password");
     } else {
       setLoading(true);
-      await api.signIn(userLogin, password).then((res) => {
+      await api.signIn(userLogin, password, loginSourceWebStream).then((res) => {
         if (res.status === 200) {
           toast.success('Success!!!');
           localStorage.setItem('wedream-auth-token', res?.data?.authToken?.accessToken || '');
-          authContext.signin(res.data, () => {
+          authContext.signIn(res.data, () => {
             history.push('/home');
           });
         } else {
+          setLoading(false);
           toast.warning(res.data.ERR_CODE);
         }
       });
-      setLoading(false);
     }
   };
   return (

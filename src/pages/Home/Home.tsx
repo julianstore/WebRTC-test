@@ -1,10 +1,9 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useCallback } from 'react';
 import styled from 'styled-components';
 import { IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
 import { ToastContainer, toast } from 'react-toastify';
 import { Grid } from '@mui/material';
 import Button from '@mui/material/Button';
-import { TextField } from '@mui/material';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import Refresh from '@mui/icons-material/Refresh';
@@ -20,17 +19,11 @@ import {
   _mpTrack,
   _audioTrack,
   _rtcClient,
-  setAudioList
+  setAudioList,
+  setRTCClient
 } from '../../store/slices/trackSlice';
 
-var intervalId: any = null;
-
 const useStyles = makeStyles({
-  textField: {
-      "& > div::after": {
-        border: "0 !important"
-      }
-  },
   disableGrid: {
     pointerEvents: 'none',
     opacity: '0.4'
@@ -39,12 +32,6 @@ const useStyles = makeStyles({
     pointerEvents: 'auto',
     opacity: '1'
   }
-});
-
-const MyTextField = styled(TextField)({
-  background: 'rgba(72, 255, 245, 0.05) !important',
-  border: '1.5px solid #48FFF5 !important',
-  borderRadius: '10px !important',
 });
 
 const MyButton = styled(Button)`
@@ -58,25 +45,21 @@ const MyButton = styled(Button)`
 
 function Home() {
   const authContext = useContext(AuthContext);
-  const [appId, setAppID] = useState(process.env.REACT_APP_WEDREAM_APP_ID || '');
-  const [channel, setChannel] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isJoined, setIsJoined] = useState(false);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
 
   const dispatch = useAppDispatch();
   const classes = useStyles();
+  const appId = process.env.REACT_APP_WEDREAM_APP_ID || '';
+  const userId = authContext.account?.authToken.userId;
 
-  const useClient = useAppSelector(_rtcClient);
+  const rtcClient = useAppSelector(_rtcClient);
   const mpTrack = useAppSelector(_mpTrack);
   const audioTrack = useAppSelector(_audioTrack);
 
   useEffect(() => {
-    if (useClient?.connectionState === 'CONNECTED') setIsJoined(true);
-
-    useClient?.on('user-published', async (user: any, mediaType: any) => {
-      //   await useClient?.subscribe(user, mediaType);
-      //   console.log('subscribe success');
+    rtcClient?.on('user-published', async (user: any, mediaType: any) => {
+      //   await rtcClient?.subscribe(user, mediaType);
       //   if (mediaType === 'video') {
       //     setUsers((prevUsers) => {
       //       return [...prevUsers, user];
@@ -87,8 +70,7 @@ function Home() {
       //   }
     });
 
-    useClient?.on('user-unpublished', (user: any, type: any) => {
-      console.log('unpublished', user, type);
+    rtcClient?.on('user-unpublished', (user: any, type: any) => {
       if (type === 'audio') {
         user.audioTrack?.stop();
       }
@@ -99,103 +81,73 @@ function Home() {
       }
     });
 
-    useClient?.on('user-left', (user: any) => {
-      console.log('leaving', user);
+    rtcClient?.on('user-left', (user: any) => {
       setUsers((prevUsers) => {
         return prevUsers.filter((User) => User.uid !== user.uid);
       });
     });
 
-    // useClient?.on('connection-state-change', function (state: any) {
+    // rtcClient?.on('connection-state-change', function (state: any) {
     //   if (state === 'DISCONNECTED') handleJoin();
     // });
-  }, [users, useClient]);
+  }, [users, rtcClient]);
 
-  const handleLeave = async () => {
-    setLoading(true);
-    await audioTrack?.stop();
-    await audioTrack?.close();
-    await mpTrack?.stop();
-    await mpTrack?.close();
+  const isConnected = useCallback(() => {
+    return rtcClient?.connectionState === 'CONNECTED'
+  }, [rtcClient?.connectionState]);
 
-    await useClient?.leave().then(() => {
-      dispatch(setAudioList([]));
-      setIsJoined(false);
-      clearInterval(intervalId);
-    });
-    setLoading(false);
-  };
+  const isDisConnected = useCallback(() => {
+    return rtcClient?.connectionState === 'DISCONNECTED'
+  }, [rtcClient?.connectionState]);
 
-  const handleJoin = async () => {
-    setLoading(true);
-    await useClient?.leave();
+  const updateRTCClient = useCallback((_rtcClient: any) => {
+    dispatch(setRTCClient(_rtcClient));
+  }, [dispatch]);
 
-    try {
-      await useClient?.join(
-        appId,
-        channel,
-        null,
-        'boomboxU$3r-' + authContext.account?.authToken.userId
-      );
-      setIsJoined(true);
-      setLoading(false);
-    } catch (e) {
-      setLoading(false);
-      toast.error('Can not join, please check App ID and Channel Name');
-      console.error(e);
+  const handleRefresh = useCallback(async (isInterval: boolean) => {
+    if (isConnected()) {
+      await audioTrack?.stop();
+      await audioTrack?.close();
+      await mpTrack?.stop();
+      await mpTrack?.close();
+      await rtcClient?.leave().then(() => {
+        dispatch(setAudioList([]));
+        updateRTCClient(rtcClient);
+      });
     }
-  };
-
-  const handleRefresh = async (isInterval: boolean) => {
-    setLoading(true);
     try {
-      if (isJoined) {
-        await audioTrack?.stop();
-        await audioTrack?.close();
-        await mpTrack?.stop();
-        await mpTrack?.close();
-        await useClient?.leave().then(() => {
-          dispatch(setAudioList([]));
-          setIsJoined(false);
-          clearInterval(intervalId);
+      if (isDisConnected()) {
+        setLoading(true);
+        await api.getDreamUser().then(async (res) => {
+          if (res.status === 200) {
+            const channel = res.data.dreamChannel;
+            try {
+              await rtcClient?.join(
+                appId,
+                channel,
+                null,
+                `boomboxU$3r-${userId}`
+              );
+              updateRTCClient(rtcClient);
+              setLoading(false);
+            } catch (e) {
+              setLoading(false);
+              toast.error('Can not join, please check if you disconnected from WeDream App');
+              console.error(e);
+            }
+          } else {
+            setLoading(false);
+            toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
+            if (isInterval) setTimeout(() => handleRefresh(isInterval), 15000);
+          }
         });
       }
-      await api.getDreamUser().then(async (res) => {
-        if (res.status === 200) {
-          console.log('response = ', res.data);
-          const tempChannel = res.data.dreamChannel;
-          setChannel(tempChannel);
-          try {
-            await useClient?.leave();
-            await useClient?.join(
-              appId,
-              tempChannel,
-              null,
-              'boomboxU$3r-' + authContext.account?.authToken.userId
-            );
-            setIsJoined(true);
-            setLoading(false);
-          } catch (e) {
-            setLoading(false);
-            toast.error('Can not join, please check if you disconnected from WeDream App');
-            console.error(e);
-          }
-        } else {
-          setLoading(false);
-          toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
-          if (isInterval) {
-            setTimeout(() => { handleRefresh(isInterval) }, 15000);
-          }
-        }
-      });
     } catch(ex) {
       setLoading(false);
       toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
-      if (isInterval) {
-        setTimeout(() => { handleRefresh(isInterval) }, 15000);
-      }
+      if (isInterval) setTimeout(() => handleRefresh(isInterval), 15000);
     }
-  }
+  }, [appId, audioTrack, dispatch, isConnected, isDisConnected, mpTrack, updateRTCClient, rtcClient, userId]);
 
   useEffect(() => {
     handleRefresh(true);
@@ -214,82 +166,6 @@ function Home() {
             style={{ marginTop: 30, marginBottom: 80 }}
             spacing={5}
           >
-            <Grid item xs={12} md={4} lg={3} style={{ display: 'none' }}>
-              <MyTextField
-                className={classes.textField}
-                label="App ID"
-                type="text"
-                name="app_id"
-                value={appId}
-                variant="standard"
-                InputProps={{
-                  style: {
-                    color: 'white',
-                    padding: '5px 8px',
-                  }
-                }}
-                InputLabelProps={{
-                  style: {
-                    color: '#48FFF5',
-                    padding: '5px 10px'
-                  }
-                }}
-                required
-                multiline
-                fullWidth
-                onChange={(e) => {
-                  setAppID(e.target.value);
-                }}
-                tabIndex={1}
-              />
-            </Grid>
-            <Grid item xs={12} md={4} lg={3} style={{ display: 'none' }}>
-              <MyTextField
-                className={classes.textField}
-                label="Channel"
-                type="text"
-                name="channel"
-                value={channel}
-                variant="standard"
-                InputProps={{
-                  style: {
-                    color: 'white',
-                    padding: '5px 8px',
-                  }
-                }}
-                InputLabelProps={{
-                  style: {
-                    color: '#48FFF5',
-                    padding: '5px 10px'
-                  }
-                }}
-                required
-                multiline
-                fullWidth
-                onChange={(e) => {
-                  setChannel(e.target.value);
-                }}
-                tabIndex={2}
-              />
-            </Grid>
-            <Grid item xs={12} md={4} lg={6} style={{ display: 'none', alignItems: 'center' }}>
-              <MyButton
-                variant="contained"
-                onClick={handleJoin}
-                disabled={isJoined}
-              >
-                Join
-              </MyButton>
-              <MyButton
-                variant="contained"
-                color="info"
-                onClick={handleLeave}
-                disabled={!isJoined}
-                style={{ marginLeft: 10 }}
-              >
-                Leave
-              </MyButton>
-            </Grid>
             <Grid item xs={12} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0' }}>
               <MyButton
                   variant="contained"
@@ -300,11 +176,11 @@ function Home() {
                   Refresh
                 </MyButton>
             </Grid>
-            <Grid item xs={12} md={6} lg={5} className={ isJoined ? classes.enableGrid : classes.disableGrid }>
-              <DevicePanel useClient={useClient} isJoined={isJoined} />
+            <Grid item xs={12} md={6} lg={5} className={ isConnected() ? classes.enableGrid : classes.disableGrid }>
+              <DevicePanel/>
             </Grid>
-            <Grid item xs={12} md={6} lg={7} className={ isJoined ? classes.enableGrid : classes.disableGrid }>
-              <FilePanel useClient={useClient} isJoined={isJoined} />
+            <Grid item xs={12} md={6} lg={7} className={ isConnected() ? classes.enableGrid : classes.disableGrid }>
+              <FilePanel/>
             </Grid>
           </Grid>
         </Grid>

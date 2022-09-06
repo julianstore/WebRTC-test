@@ -13,14 +13,14 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
     localStorage.getItem('curWeDreamRTCAccount') !== null
   );
 
-  const signin = (newAccount: any, callback: VoidFunction) => {
+  const signIn = (newAccount: any, callback: VoidFunction) => {
     setAccount(newAccount);
     setIsAuthenticated(true);
     localStorage.setItem('curWeDreamRTCAccount', JSON.stringify(newAccount));
     callback();
   };
 
-  const signout = (callback: VoidFunction) => {
+  const signOut = (callback: VoidFunction) => {
     setAccount(null);
     setIsAuthenticated(false);
     localStorage.removeItem('wedream-auth-token');
@@ -28,7 +28,7 @@ const AuthProvider: React.FC<Props> = ({ children }) => {
     callback();
   };
 
-  const value = { account, isAuthenticated, signin, signout };
+  const value = { account, isAuthenticated, signIn, signOut };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

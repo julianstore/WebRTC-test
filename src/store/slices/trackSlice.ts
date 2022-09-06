@@ -36,7 +36,6 @@ const trackSlice = createSlice({
       state.audioTrack = action.payload;
     },
     setRTCClient(state: TrackState, action: PayloadAction<IAgoraRTCClient>) {
-      console.log('setRTCClient:', action.payload);
       state.rtcClient = action.payload;
     }
   }

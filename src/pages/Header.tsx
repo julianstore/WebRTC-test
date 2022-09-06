@@ -1,7 +1,7 @@
 import { Typography, Grid, Box } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import AuthContext from '../contexts/AuthContext';
-import { useContext } from 'react';
+import { useContext, useCallback } from 'react';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import AgoraRTC, { ClientConfig } from 'agora-rtc-sdk-ng';
@@ -74,21 +74,19 @@ export const Header = () => {
     codec: 'h264'
   };
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    let useClient = AgoraRTC.createClient(config);
-    if (useClient) dispatch(setRTCClient(useClient));
-    // eslint-disable-next-line
-  }, []);
-
   const mpTrack = useAppSelector(_mpTrack);
   const audioTrack = useAppSelector(_audioTrack);
   const rtcClient = useAppSelector(_rtcClient);
 
+  const isConnected = useCallback(() => {
+    return rtcClient?.connectionState === 'CONNECTED'
+  }, [rtcClient?.connectionState]);
+
   const handleLogout = async () => {
-    if (rtcClient.connectionState === 'CONNECTED') {
+    if (isConnected()) {
       await rtcClient.unpublish(mpTrack ? [mpTrack] : []).then(() => {
         mpTrack?.stopProcessAudioBuffer();
+        dispatch(setRTCClient(rtcClient));
       });
 
       await mpTrack?.stop();
@@ -102,10 +100,16 @@ export const Header = () => {
     }
 
     dispatch(setAudioList([]));
-    authContext.signout(() => {
+    authContext.signOut(() => {
       history.push('/');
     });
   };
+
+  useEffect(() => {
+    let rtcClient = AgoraRTC.createClient(config);
+    if (rtcClient) dispatch(setRTCClient(rtcClient));
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <Grid container>
