@@ -123,7 +123,9 @@ function FilePanel(props: any) {
   const audioList = useAppSelector(_audioList);
 
   useEffect(() => {
-    handlePlay();
+    if (useClient?.connectionState === 'CONNECTED') {
+      handlePlay();
+    }
     mpTrack?.on('source-state-change', (currentState: AudioSourceState) => {
       if (currentState === 'playing') {
         setIsPlaying(true);

@@ -1,13 +1,14 @@
 import { useEffect, useState, useContext } from 'react';
 import styled from 'styled-components';
 import { IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
+import { ToastContainer, toast } from 'react-toastify';
 import { Grid } from '@mui/material';
 import Button from '@mui/material/Button';
 import { TextField } from '@mui/material';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import Refresh from '@mui/icons-material/Refresh';
 import { makeStyles } from '@material-ui/core/styles';
-import { ToastContainer, toast } from 'react-toastify';
 
 import AuthContext from '../../contexts/AuthContext';
 import DevicePanel from './DevicePanel';
@@ -29,6 +30,14 @@ const useStyles = makeStyles({
       "& > div::after": {
         border: "0 !important"
       }
+  },
+  disableGrid: {
+    pointerEvents: 'none',
+    opacity: '0.4'
+  },
+  enableGrid: {
+    pointerEvents: 'auto',
+    opacity: '1'
   }
 });
 
@@ -39,17 +48,18 @@ const MyTextField = styled(TextField)({
 });
 
 const MyButton = styled(Button)`
+  font-family: Poppins !important;
+  font-weight: 500 !important;
+  color: #C8DCFF !important;
   @media only screen and (max-width: 900px) {
-    width: 50%;
+    width: 100%;
   }
 `;
 
 function Home() {
   const authContext = useContext(AuthContext);
-  const [appId, setAppID] = useState('56dd54658f404b64a9bcc23c132be423');
-  const [channel, setChannel] = useState(
-    'e5617602-8eef-4896-afa3-3a6f888d64ea'
-  );
+  const [appId, setAppID] = useState(process.env.REACT_APP_WEDREAM_APP_ID || '');
+  const [channel, setChannel] = useState('');
   const [loading, setLoading] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
@@ -62,7 +72,7 @@ function Home() {
   const audioTrack = useAppSelector(_audioTrack);
 
   useEffect(() => {
-    getDreamUser();
+    handleTimeout();
   }, []);
 
   useEffect(() => {
@@ -105,18 +115,6 @@ function Home() {
     // });
   }, [users, useClient]);
 
-  const getDreamUser = async () => {
-    setLoading(true);
-    await api.getDreamUser().then((res) => {
-      if (res.status === 200) {
-        console.log('response = ', res.data);
-      } else {
-        toast.warning(res.data.ERR_CODE);
-      }
-    });
-    setLoading(false);
-  }
-
   const handleLeave = async () => {
     setLoading(true);
     await audioTrack?.stop();
@@ -143,7 +141,7 @@ function Home() {
         null,
         'boomboxU$3r-' + authContext.account?.authToken.userId
       );
-      setIsJoined(!isJoined);
+      setIsJoined(true);
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -152,10 +150,101 @@ function Home() {
     }
   };
 
+  const handleTimeout = async () => {
+    setLoading(true);
+    try {
+      if (isJoined) {
+        await audioTrack?.stop();
+        await audioTrack?.close();
+        await mpTrack?.stop();
+        await mpTrack?.close();
+        await useClient?.leave().then(() => {
+          dispatch(setAudioList([]));
+          setIsJoined(false);
+          clearInterval(intervalId);
+        });
+      }
+      await api.getDreamUser().then(async (res) => {
+        if (res.status === 200) {
+          console.log('response = ', res.data);
+          const tempChannel = res.data.dreamChannel;
+          setChannel(tempChannel);
+          try {
+            await useClient?.leave();
+            await useClient?.join(
+              appId,
+              tempChannel,
+              null,
+              'boomboxU$3r-' + authContext.account?.authToken.userId
+            );
+            setIsJoined(true);
+            setLoading(false);
+          } catch (e) {
+            setLoading(false);
+            toast.error('Can not join, please check if you disconnected from WeDream App');
+            console.error(e);
+          }
+        } else {
+          setLoading(false);
+          toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
+          setTimeout(() => { handleTimeout() }, 15000);
+        }
+      });
+    } catch(ex) {
+      setLoading(false);
+      toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
+      setTimeout(() => { handleTimeout() }, 15000);
+    }
+  }
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      if (isJoined) {
+        await audioTrack?.stop();
+        await audioTrack?.close();
+        await mpTrack?.stop();
+        await mpTrack?.close();
+        await useClient?.leave().then(() => {
+          dispatch(setAudioList([]));
+          setIsJoined(false);
+          clearInterval(intervalId);
+        });
+      }
+      await api.getDreamUser().then(async (res) => {
+        if (res.status === 200) {
+          const tempChannel = res.data.dreamChannel;
+          setChannel(tempChannel);
+          try {
+            await useClient?.join(
+              appId,
+              tempChannel,
+              null,
+              'boomboxU$3r-' + authContext.account?.authToken.userId
+            );
+            setIsJoined(true);
+            setLoading(false);
+          } catch (e) {
+            setLoading(false);
+            toast.error('Can not join, please check if you disconnected from WeDream App');
+            console.error(e);
+          }
+
+        } else {
+          setLoading(false);
+          toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
+        }
+      });
+    } catch(ex) {
+      setLoading(false);
+      toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
+    }
+  };
+
   return (
     <PageContainer>
       <Grid container>
-        <Grid md={11} lg={9}>
+        <Grid item md={11} lg={9}>
           <Grid
             container
             direction="row"
@@ -164,7 +253,7 @@ function Home() {
             style={{ marginTop: 30, marginBottom: 80 }}
             spacing={5}
           >
-            <Grid item xs={12} md={4} lg={3}>
+            <Grid item xs={12} md={4} lg={3} style={{ display: 'none' }}>
               <MyTextField
                 className={classes.textField}
                 label="App ID"
@@ -193,7 +282,7 @@ function Home() {
                 tabIndex={1}
               />
             </Grid>
-            <Grid item xs={12} md={4} lg={3}>
+            <Grid item xs={12} md={4} lg={3} style={{ display: 'none' }}>
               <MyTextField
                 className={classes.textField}
                 label="Channel"
@@ -222,12 +311,11 @@ function Home() {
                 tabIndex={2}
               />
             </Grid>
-            <Grid item xs={12} md={4} lg={6} style={{ display: 'flex', alignItems: 'center' }}>
+            <Grid item xs={12} md={4} lg={6} style={{ display: 'none', alignItems: 'center' }}>
               <MyButton
                 variant="contained"
                 onClick={handleJoin}
                 disabled={isJoined}
-                tabIndex={3}
               >
                 Join
               </MyButton>
@@ -237,15 +325,24 @@ function Home() {
                 onClick={handleLeave}
                 disabled={!isJoined}
                 style={{ marginLeft: 10 }}
-                tabIndex={7}
               >
                 Leave
               </MyButton>
             </Grid>
-            <Grid item xs={12} md={6} lg={5}>
+            <Grid item xs={12} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0' }}>
+              <MyButton
+                  variant="contained"
+                  onClick={handleRefresh}
+                  tabIndex={3}
+                >
+                  <Refresh/>
+                  Refresh
+                </MyButton>
+            </Grid>
+            <Grid item xs={12} md={6} lg={5} className={ isJoined ? classes.enableGrid : classes.disableGrid }>
               <DevicePanel useClient={useClient} isJoined={isJoined} />
             </Grid>
-            <Grid item xs={12} md={6} lg={7}>
+            <Grid item xs={12} md={6} lg={7} className={ isJoined ? classes.enableGrid : classes.disableGrid }>
               <FilePanel useClient={useClient} isJoined={isJoined} />
             </Grid>
           </Grid>
