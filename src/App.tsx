@@ -20,7 +20,7 @@ function App() {
     <>
       <Provider store={store}>
         <AuthProvider>
-          <Router basename="/rtc">
+          <Router>
             <Switch>
               <Route exact path="/">
                 <SignIn />

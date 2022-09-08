@@ -11,6 +11,10 @@ import Avatar from '@mui/material/Avatar';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MicOffTwoToneIcon from '@mui/icons-material/MicOffTwoTone';
 import MicTwoToneIcon from '@mui/icons-material/MicTwoTone';
+import Slider from '@mui/material/Slider';
+import Stack from '@mui/material/Stack';
+import VolumeDown from '@mui/icons-material/VolumeDown';
+import VolumeUp from '@mui/icons-material/VolumeUp';
 
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { _audioTrack, _rtcClient, setAudioTrack, setRTCClient } from '../../store/slices/trackSlice';
@@ -41,6 +45,31 @@ const MicOffButton = styled(Avatar)({
   cursor: 'pointer'
 });
 
+const WeDreamVolumeDown = styled(VolumeDown)({
+  fontSize: '20px !important',
+  color: '#48FFF5'
+});
+
+const WeDreamVolumeUp = styled(VolumeUp)({
+  fontSize: '22x !important',
+  color: '#48FFF5'
+});
+
+const TrackSlider = styled(Slider)({
+  '& .MuiSlider-thumb': {
+    background: 'rgba(0,0,0,0) !important'
+  },
+  '& .MuiSlider-track': {
+    background: '#48FFF5 !important'
+  },
+  '& .MuiSlider-rail': {
+    background: '#464646 !important'
+  },
+  '& .MuiSlider-markLabel': {
+    color: '#48FFF5 !important'
+  }
+});
+
 const MicDescription = styled(Typography)({
   fontFamily: 'Poppins !important',
   fontWeight: '400 !important',
@@ -61,6 +90,7 @@ function DevicePanel() {
   const [deviceList, setDeviceList] = useState<MediaDeviceInfo[]>([]);
   const [device, setDevice] = useState('');
   const [micOn, setMicOn] = useState(false);
+  const [volume, setVolume] = useState<number>(100);
 
   const dispatch = useAppDispatch();
   const audioTrack = useAppSelector(_audioTrack);
@@ -73,6 +103,13 @@ function DevicePanel() {
   const updateRTCClient = useCallback((_rtcClient: any) => {
     dispatch(setRTCClient(_rtcClient));
   }, [dispatch]);
+
+  const handleVolumeChange = useCallback((event: Event, newValue: number | number[]) => {
+    setVolume(newValue as number);
+    if (isConnected() && micOn && device && audioTrack != null) {
+      audioTrack.setVolume(newValue as number);
+    }
+  }, [micOn, audioTrack, isConnected, device]);
 
   useEffect(() => {
     AgoraRTC.getMicrophones()
@@ -219,6 +256,12 @@ function DevicePanel() {
             <MicDescription>
               Input source is broacasting. Click to mute.
             </MicDescription>
+
+            <Stack style={{ marginTop: '10px', width: '50%' }} spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+              <WeDreamVolumeDown />
+              <TrackSlider aria-label="Volume" value={volume} onChange={handleVolumeChange} />
+              <WeDreamVolumeUp />
+            </Stack>
           </Grid>
         )}
       </DeviceWrapper>

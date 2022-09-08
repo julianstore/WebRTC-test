@@ -51,7 +51,8 @@ function Home() {
   const dispatch = useAppDispatch();
   const classes = useStyles();
   const appId = process.env.REACT_APP_WEDREAM_APP_ID || '';
-  const userId = authContext.account?.authToken.userId;
+  // const userId = authContext.account?.authToken.userId;
+  const sessionId = Number(authContext.account?.authToken.sessionId) || 0;
 
   const rtcClient = useAppSelector(_rtcClient);
   const mpTrack = useAppSelector(_mpTrack);
@@ -118,23 +119,41 @@ function Home() {
     try {
       if (isDisConnected()) {
         setLoading(true);
+        // //TODO: remove after testing
+        // await rtcClient?.join(
+        //   appId,
+        //   "D5",
+        //   null,
+        //   sessionId
+        // );
+        // updateRTCClient(rtcClient);
+        // setLoading(false);
         await api.getDreamUser().then(async (res) => {
           if (res.status === 200) {
             const channel = res.data.dreamChannel;
-            try {
-              await rtcClient?.join(
-                appId,
-                channel,
-                null,
-                `boomboxU$3r-${userId}`
-              );
-              updateRTCClient(rtcClient);
-              setLoading(false);
-            } catch (e) {
-              setLoading(false);
-              toast.error('Can not join, please check if you disconnected from WeDream App');
-              console.error(e);
-            }
+            const dreamId = res.data.dreamId;
+            await api.joinDreamGroup(dreamId).then(async (res) => {
+              if (res.status === 200) {
+                try {
+                  await rtcClient?.join(
+                    appId,
+                    channel,
+                    null,
+                    sessionId
+                  );
+                  updateRTCClient(rtcClient);
+                  setLoading(false);
+                } catch (e) {
+                  setLoading(false);
+                  toast.error('Can not join, please check if you disconnected from WeDream App');
+                  console.error(e);
+                }
+              } else {
+                setLoading(false);
+                toast.warning("We had an issue connecting to the dream for streaming. Please try again");
+                if (isInterval) setTimeout(() => handleRefresh(isInterval), 15000);
+              }
+            });
           } else {
             setLoading(false);
             toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
@@ -147,7 +166,7 @@ function Home() {
       toast.warning("Please sign-in to the WeDream App and join the dream you wish to broadcast");
       if (isInterval) setTimeout(() => handleRefresh(isInterval), 15000);
     }
-  }, [appId, audioTrack, dispatch, isConnected, isDisConnected, mpTrack, updateRTCClient, rtcClient, userId]);
+  }, [appId, audioTrack, dispatch, isConnected, isDisConnected, mpTrack, updateRTCClient, rtcClient, sessionId]);
 
   useEffect(() => {
     handleRefresh(true);

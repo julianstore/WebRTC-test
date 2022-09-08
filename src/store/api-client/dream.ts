@@ -1,5 +1,5 @@
 import axios from 'axios';
-// import axiosInstance from '.';
+import axiosInstance from '.';
 
 // For Authorized request
 const getAxiosInstance = () => {
@@ -23,3 +23,12 @@ export const getDreamUser = () => {
       return err.response;
     });
 };
+
+export const joinDreamGroup = (dreamId: number) => {
+  return axiosInstance
+  .post(`/dream/join/${dreamId}`)
+  .then((res) => res)
+  .catch((err) => {
+    return err.response
+  });
+}

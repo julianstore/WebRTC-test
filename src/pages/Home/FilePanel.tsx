@@ -20,6 +20,9 @@ import SkipPreviousOutlinedIcon from '@mui/icons-material/SkipPreviousOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import CircleIcon from '@mui/icons-material/Circle';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import Stack from '@mui/material/Stack';
+import VolumeDown from '@mui/icons-material/VolumeDown';
+import VolumeUp from '@mui/icons-material/VolumeUp';
 
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
@@ -79,6 +82,16 @@ const RemoveMark = styled(DeleteOutlineIcon)({
   color: '#48FFF5'
 });
 
+const WeDreamVolumeDown = styled(VolumeDown)({
+  fontSize: '20px !important',
+  color: '#48FFF5'
+});
+
+const WeDreamVolumeUp = styled(VolumeUp)({
+  fontSize: '22x !important',
+  color: '#48FFF5'
+});
+
 const TrackName = styled(Typography)({
   display: 'block',
   width: '300px',
@@ -118,6 +131,7 @@ function FilePanel() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [curAudio, setCurAudio] = useState<File>();
   const [position, setPosition] = useState(0);
+  const [volume, setVolume] = useState<number>(100);
 
   const dispatch = useAppDispatch();
   const mpTrack = useAppSelector(_mpTrack);
@@ -135,6 +149,13 @@ function FilePanel() {
   const updateRTCClient = useCallback((_rtcClient: any) => {
     dispatch(setRTCClient(_rtcClient));
   }, [dispatch]);
+
+  const handleVolumeChange = useCallback((event: Event, newValue: number | number[]) => {
+    setVolume(newValue as number);
+    if (isConnected() && mpTrack != null) {
+      mpTrack.setVolume(newValue as number);
+    }
+  }, [isConnected, mpTrack]);
 
   useEffect(() => {
     if (isConnected()) {
@@ -456,6 +477,15 @@ function FilePanel() {
               onClick={handleNext}
             />
           </Grid>
+          {isConnected() && curAudio && audioList.length !== 0 &&
+            <Grid item xs={12} md={8} style={{ marginTop: '10px' }}>
+              <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+                <WeDreamVolumeDown />
+                <TrackSlider aria-label="Volume" value={volume} onChange={handleVolumeChange} />
+                <WeDreamVolumeUp />
+              </Stack>
+            </Grid>
+          }
         </Grid>
       </FileListWrapper>
     </FileDrop>
