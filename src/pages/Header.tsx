@@ -70,7 +70,7 @@ export const Header = () => {
   const history = useHistory();
 
   const config: ClientConfig = {
-    mode: 'rtc',
+    mode: 'live',
     codec: 'h264'
   };
   const dispatch = useAppDispatch();
@@ -107,6 +107,7 @@ export const Header = () => {
 
   useEffect(() => {
     let rtcClient = AgoraRTC.createClient(config);
+    rtcClient.setClientRole("host");
     if (rtcClient) dispatch(setRTCClient(rtcClient));
     // eslint-disable-next-line
   }, []);

@@ -131,7 +131,7 @@ function FilePanel() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [curAudio, setCurAudio] = useState<File>();
   const [position, setPosition] = useState(0);
-  const [volume, setVolume] = useState<number>(100);
+  const [volume, setVolume] = useState<number>(40);
 
   const dispatch = useAppDispatch();
   const mpTrack = useAppSelector(_mpTrack);
@@ -189,6 +189,7 @@ function FilePanel() {
       source: newAudio
     };
     const tempMPTrack = await AgoraRTC.createBufferSourceAudioTrack(fileConfig);
+    tempMPTrack.setVolume(volume);
     (fileInput.current as any).value = null;
     setCurAudio(newAudio);
     dispatch(setMPTrack(tempMPTrack));
